@@ -11,8 +11,7 @@ Here are the parts:
 
 
 '''Calculation'''
-PATH_FLOAT_ACCURACY = 3 #This is how many digits after the decimal point the intersection calculator will save for
-RENDER_FPS = 30 #This is the rendering FPS, also used for steps per second in path calculations
+FLOAT_ACCURACY = 3 #This is how many digits after the decimal point things will generally round to
 
 '''Visuals'''
 INTERFACE_FPS = 60 # The interface window will be called every 1/INTERFACE_FPS seconds
@@ -31,11 +30,8 @@ hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3,
 '''Saving'''
 import os, time
 PATH_SAVE_DEFAULT = os.path.join("tapes")
-EXPORT_IMAGE_DATA = True
-CLEAR_ON_OPEN = True
 
 FORMAT_TIME = lambda x: time.strftime("%I:%M:%S %p %m/%d/%Y", time.localtime(x))
-DEFAULT_PROJECT_NAME = "Untitled Project"
 
 '''Keybinds'''
 EDITOR_VISUAL_KEYBINDS = {
@@ -67,7 +63,7 @@ from PIL import Image, ImageFont
 import numpy
 
 # Version
-VERSION = "v1.0.0"
+VERSION = "v0.0.0-really really early in development"
 
 # Imagery
 LOADING_IMAGE = Image.open(os.path.join("resources", "loading.png")).convert("RGBA") # 1366x697, Solid, Loading Screen

@@ -1,4 +1,4 @@
-'''A counter.'''
+'''A counter and rounding'''
 
 class Counter:
     def __init__(self):

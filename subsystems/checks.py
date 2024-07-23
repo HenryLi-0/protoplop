@@ -12,14 +12,7 @@ from settings import *
 class Check:
     def check():
         # Program/Subsystem Files
-        import subsystems.bay
-        import subsystems.counter
-        import subsystems.fancy
-        import subsystems.interface
-        import subsystems.pathing
-        import subsystems.render
-        import subsystems.visuals
-        import subsystems.window
+
         # Resource Files
         
         # Cache
@@ -53,13 +46,13 @@ class Check:
 
     def regenerateAllThemedOutline():
         '''Regenerate all themed images'''
-        Check.generateThemedOutline(D_FRAME_ANIMATION_PATH, "u_frame_animation", bgColor="#000000")
-        Check.generateThemedOutline(D_FRAME_TIMELINE_PATH, "u_frame_timeline")
-        Check.generateThemedOutline(D_FRAME_TIMELINE_READER_PATH, "u_frame_timeline_reader", frameColor=SELECTED_COLOR)
-        Check.generateThemedOutline(D_FRAME_EDITOR_PATH, "u_frame_editor")
-        Check.generateThemedOutline(D_FRAME_EDITOR_VISUALS_PATH, "u_frame_editor_visuals")
-        Check.generateThemedOutline(D_FRAME_EDITOR_VISUALS_GRAPH_PATH, "u_frame_editor_visuals_graph", frameColor=SELECTED_COLOR, bgColor="transparent")
-        Check.generateThemedOutline(D_FRAME_EDITOR_VISUALS_GRAPH_BAR_PATH, "u_frame_editor_visuals_graph_bar")
-        Check.generateThemedOutline(D_FRAME_OPTIONS_PATH, "u_frame_options")
-        Check.generateThemedOutline(D_FRAME_OPTIONS_BUTTON_PATH, "u_frame_options_button_on", frameColor=SELECTED_COLOR)
-        Check.generateThemedOutline(D_FRAME_OPTIONS_BUTTON_PATH, "u_frame_options_button_off")
+        # Check.generateThemedOutline(D_FRAME_ANIMATION_PATH, "u_frame_animation", bgColor="#000000")
+        # Check.generateThemedOutline(D_FRAME_TIMELINE_PATH, "u_frame_timeline")
+        # Check.generateThemedOutline(D_FRAME_TIMELINE_READER_PATH, "u_frame_timeline_reader", frameColor=SELECTED_COLOR)
+        # Check.generateThemedOutline(D_FRAME_EDITOR_PATH, "u_frame_editor")
+        # Check.generateThemedOutline(D_FRAME_EDITOR_VISUALS_PATH, "u_frame_editor_visuals")
+        # Check.generateThemedOutline(D_FRAME_EDITOR_VISUALS_GRAPH_PATH, "u_frame_editor_visuals_graph", frameColor=SELECTED_COLOR, bgColor="transparent")
+        # Check.generateThemedOutline(D_FRAME_EDITOR_VISUALS_GRAPH_BAR_PATH, "u_frame_editor_visuals_graph_bar")
+        # Check.generateThemedOutline(D_FRAME_OPTIONS_PATH, "u_frame_options")
+        # Check.generateThemedOutline(D_FRAME_OPTIONS_BUTTON_PATH, "u_frame_options_button_on", frameColor=SELECTED_COLOR)
+        # Check.generateThemedOutline(D_FRAME_OPTIONS_BUTTON_PATH, "u_frame_options_button_off")

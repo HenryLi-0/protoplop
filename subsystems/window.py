@@ -28,10 +28,6 @@ class Window:
         self.w_animation.grid(column=0,row=1, padx=(23,27), pady=(36,15))
         self.w_timeline = tk.Label(self.window, image = testImage, highlightthickness=0, bd=0)
         self.w_timeline.grid(column=0,row=2, padx=(23,27), pady=(0,0))
-        self.w_editor = tk.Label(self.window, image = testImage, highlightthickness=0, bd=0)
-        self.w_editor.grid(column=1,row=1, padx=(0,0), pady=(36,15))
-        self.w_options = tk.Label(self.window, image = testImage, highlightthickness=0, bd=0)
-        self.w_options.grid(column=1,row=2, padx=(0,0), pady=(0,0))
 
         '''start interface'''
         self.interface = Interface()
@@ -55,12 +51,6 @@ class Window:
         img = ImageTk.PhotoImage(self.interface.getImageTimeline())
         self.w_timeline.configure(image = img)
         self.w_timeline.image = img
-        img = ImageTk.PhotoImage(self.interface.getImageEditor())
-        self.w_editor.configure(image = img)
-        self.w_editor.image = img
-        img = ImageTk.PhotoImage(self.interface.getImageOptions())
-        self.w_options.configure(image = img)
-        self.w_options.image = img
         self.window.after(TICK_MS, self.windowProcesses)
 
         self.fpsCounter +=1
@@ -75,7 +65,7 @@ class Window:
     def windowOccasionalProcesses(self):
         '''window processes that happen less frequently (once every 3 seconds)'''
         print("windowOccaionalProcess")
-        self.window.title(f"Tape - Editing: {self.interface.projectName}")
+        self.window.title(f"Protoplop")
         print(self.getFPS())
         self.window.after(OCCASIONAL_TICK_MS, self.windowOccasionalProcesses)
 

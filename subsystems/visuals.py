@@ -1,9 +1,9 @@
 '''This file contains classes all about the visual objects the user sees'''
 
 import time, numpy, random, math
-from subsystems.pathing import bezierPathCoords, straightPathCoords, addP, subtractP, mergeCoordRotationPath, pointNextCoordRotationPath, roundf
 from subsystems.render import placeOver
 from subsystems.fancy import displayText, generateColorBox, generateBorderBox
+from subsystems.point import *
 from settings import *
 
 class VisualManager:
@@ -103,24 +103,6 @@ class FixedRegionPositionalBox:
 
 from settings import ORB_IDLE_ARRAY, ORB_SELECTED_ARRAY, CURSOR_SELECT_ARRAY
 
-class PathWorker: 
-    '''Format inputs as a set-like of [bezier?, [coords], steps]'''
-    def get(pathData):
-        return bezierPathCoords(pathData[0], pathData[1]) if pathData[0] else straightPathCoords(pathData[0], pathData[1])
-    
-class PathVisualObject:
-    '''A path.'''
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-        self.path = [(0,0,0)]
-    def tick(self, window, points):
-        '''Takes in a set of points and draws the path'''
-        self.path = bezierPathCoords(points, 10)
-        self.path = mergeCoordRotationPath(self.path, pointNextCoordRotationPath(self.path))
-        for coord in self.path:
-            placeOver(window, CURSOR_SELECT_ARRAY, (coord[0], coord[1]), True)
-
 class OrbVisualObject:
     '''A movable point.'''
     def __init__(self, name):
@@ -212,7 +194,7 @@ class PointVisualObject:
         if 27<=place[0] and 221<=place[1] and place[0]<=383 and place[1]<=477:
             placeOver(window, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, place, True)
         if type(self.pointData)in [int, float]:
-            if active: placeOver(window, displayText(str(roundf(self.pointData, PATH_FLOAT_ACCURACY)), "m"), addP(self.positionO.getPosition(), (29,222)), True)
+            if active: placeOver(window, displayText(str(roundf(self.pointData, FLOAT_ACCURACY)), "m"), addP(self.positionO.getPosition(), (29,222)), True)
         else:
             if active: placeOver(window, displayText(str(self.pointData), "m"), addP(self.positionO.getPosition(), (29,222)), True)
         if active: return self.pointData
@@ -220,40 +202,6 @@ class PointVisualObject:
         self.positionO.setPosition((rmx, rmy))
     def setPointData(self, data):
         self.pointData = data
-    def keepInFrame(self, maxX, maxY):
-        pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
-    def getInteractable(self, rmx, rmy):
-        return self.positionO.getInteract(rmx, rmy)
-
-class PointConnectionVisualObject:
-    '''A graph connection between two points on a graph. MEANT FOR THE GRAPH AND THE GRAPH ONLY.'''
-    def __init__(self, name, regionA, regionB):
-        self.type = "connection"
-        self.name = name
-        self.positionO = FixedRegionPositionalBox(regionA, regionB)
-        self.pathData = []
-    def tick(self, window, active, graphOffset, graphScale):
-        if len(self.pathData) > 0:
-            previousTargetX = (self.pathData[0][0]-graphOffset)*25/(graphScale+0.000001)
-            previousTargetY = 100-self.pathData[0][1]*2.23
-            for point in self.pathData:
-                target = ((point[0]-graphOffset)*25/(graphScale+0.000001),100-point[1]*2.23)
-                if 0 < target[0] and target[0] < 337 and (abs(target[0]-previousTargetX) > 5 or abs(target[1]-previousTargetY) > 5):
-                    placeOver(window, PATH_POINT_SELECTED_ARRAY if active else PATH_POINT_IDLE_ARRAY, addP(target, (29,364)), True)
-                    previousTargetX, previousTargetY = target
-            self.setShapeTime((self.pathData[0][0],self.pathData[0][1]),(self.pathData[-1][0],self.pathData[-1][1]), graphOffset, graphScale)
-        else:
-            self.setShapeTime((0,0),(0,0), graphOffset, graphScale)
-    def updatePos(self, rmx, rmy):
-        self.positionO.setPosition((rmx, rmy))
-    def setPathData(self, data):
-        self.pathData = data
-    def setShapeTime(self, pointA, pointB, graphOffset, graphScale):
-        a = ((pointA[0]-graphOffset)*25/(graphScale+0.000001), 243)
-        b = ((pointB[0]-graphOffset)*25/(graphScale+0.000001), 475)
-        self.positionO.setRegion(a,b)
     def keepInFrame(self, maxX, maxY):
         pos = self.positionO.getPosition()
         if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
