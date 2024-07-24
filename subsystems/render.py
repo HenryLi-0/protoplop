@@ -20,6 +20,24 @@ def saveImage(array:numpy.ndarray, output_path):
 
 # Image
 
+def clip(img:Image.Image|numpy.ndarray, cliplen: int, direction: str):
+    '''Returns an image with clipped cliplen from direction direction'''
+    img = numpy.array(img)
+    cliplen = round(cliplen)
+    if   direction == "N": return img[cliplen:, :, :]
+    elif direction == "S": return img[:-cliplen, :, :]
+    elif direction == "E": return img[:, cliplen:, :]
+    elif direction == "W": return img[:, :-cliplen, :]
+    else: return img
+
+def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|list):
+    '''Returns a region of an image, given two coordinates relative to (0,0) of the image'''
+    pointA = (min(img.shape[1], cornerA[0], cornerB[0]), min(img.shape[1], cornerA[1], cornerB[1]))
+    pointB = (max(           0, cornerA[0], cornerB[0]), max(           0, cornerA[1], cornerB[1]))
+    area = img[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
+    return area
+
+
 def merge(img1:Image.Image|numpy.ndarray, img2:Image.Image|numpy.ndarray):
     '''Returns an array of the average of the values of two given images/numpy arrays as a numpy array'''
     img1 = numpy.array(img1)
