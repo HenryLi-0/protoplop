@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 from subsystems.render import getRegion
 from subsystems.canvas import CanvasWrapper
 
-IMAGE_ARRAY = numpy.array(Image.open("C:/Users/henry/Downloads/tape.jpg").convert("RGBA"))
+IMAGE_ARRAY = numpy.array(Image.open("C:/Users/henry/Downloads/game image.png").convert("RGBA"))
 IMAGE_SIZE = (IMAGE_ARRAY.shape[1], IMAGE_ARRAY.shape[0])
 
 # Constants
@@ -38,8 +38,6 @@ class Window:
             self.mPressed = 0
 
         self.canvas.placeOver(IMAGE_ARRAY, (mx, my))
-
-        print(f"beep {time.time()}")
 
         self.window.after(30, self.windowProcesses)
 
