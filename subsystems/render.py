@@ -21,7 +21,7 @@ def saveImage(array:numpy.ndarray, output_path):
 # Image
 
 def clip(img:Image.Image|numpy.ndarray, cliplen: int, direction: str):
-    '''Returns an image with clipped cliplen from direction direction'''
+    '''Returns an image with clipped cliplen from a given direction'''
     img = numpy.array(img)
     cliplen = round(cliplen)
     if   direction == "N": return img[cliplen:, :, :]
@@ -30,11 +30,35 @@ def clip(img:Image.Image|numpy.ndarray, cliplen: int, direction: str):
     elif direction == "W": return img[:, :-cliplen, :]
     else: return img
 
+    import numpy as np
+
+def addBlank(img:Image.Image|numpy.ndarray, add: int, direction: str):
+    '''Returns the image with added add "empty" pixels in a given direction'''
+    img = numpy.array(img)
+    y, x, _ = img.shape
+    if   direction == 'N': return numpy.vstack((numpy.zeros((add, x, 4), dtype=img.dtype), img))
+    elif direction == 'S': return numpy.vstack((img, numpy.zeros((add, x, 4), dtype=img.dtype)))
+    elif direction == 'E': return numpy.hstack((img, numpy.zeros((y, add, 4), dtype=img.dtype)))
+    elif direction == 'W': return numpy.hstack((numpy.zeros((y, add, 4), dtype=img.dtype), img))
+    else: return img
+
 def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|list):
     '''Returns a region of an image, given two coordinates relative to (0,0) of the image'''
-    pointA = (min(img.shape[1], cornerA[0], cornerB[0]), min(img.shape[1], cornerA[1], cornerB[1]))
-    pointB = (max(           0, cornerA[0], cornerB[0]), max(           0, cornerA[1], cornerB[1]))
-    area = img[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
+    imgC = img
+    y, x, _ = img.shape
+    pointA = [min(cornerA[0], cornerB[0]), min(cornerA[1], cornerB[1])]
+    pointB = [max(cornerA[0], cornerB[0]), max(cornerA[1], cornerB[1])]
+    if pointA[0] < 0:
+        add = abs(pointA[0])
+        imgC = addBlank(imgC, add, "W")
+        pointA[0] += add 
+        pointB[0] += add
+    if pointA[1] < 0:
+        add = abs(pointA[1])
+        imgC = addBlank(imgC, add, "N")
+        pointA[1] += add 
+        pointB[1] += add
+    area = imgC[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
     return area
 
 

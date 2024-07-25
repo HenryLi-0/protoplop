@@ -2,6 +2,7 @@ import tkinter as tk
 import numpy, time, math
 from PIL import Image, ImageTk
 from subsystems.render import getRegion
+from subsystems.canvas import CanvasWrapper
 
 IMAGE_ARRAY = numpy.array(Image.open("C:/Users/henry/Downloads/tape.jpg").convert("RGBA"))
 IMAGE_SIZE = (IMAGE_ARRAY.shape[1], IMAGE_ARRAY.shape[0])
@@ -25,8 +26,7 @@ class Window:
         self.fpsGood = False
         self.mPressed = False
 
-        self.canvas = tk.Canvas(self.window, width=1350, height=650, bg='white')
-        self.canvas.pack()
+        self.canvas = CanvasWrapper(self.window, (500,250), (500,0))
 
     def windowProcesses(self):
         '''window processes'''
@@ -37,14 +37,7 @@ class Window:
         else:
             self.mPressed = 0
 
-
-        copy = getRegion(IMAGE_ARRAY, (1350-mx,650-my), (1350+1350-mx, 650+650-my))
-        photo = ImageTk.PhotoImage(Image.fromarray(copy))
-
-
-        self.canvas.create_image(0, 0, image=photo, anchor=tk.NW)
-
-        self.cache = photo
+        self.canvas.placeOver(IMAGE_ARRAY, (mx, my))
 
         print(f"beep {time.time()}")
 
