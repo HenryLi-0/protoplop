@@ -25,10 +25,10 @@ class Window:
 
         '''load test image'''
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
-        self.w_sketch = CanvasWrapper(self.window, (1024, 658), (  20,  20), (  20,  20))
-        self.w_tools  = CanvasWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20))
-        self.w_colors = CanvasWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212))
-        self.w_layers = CanvasWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380))
+        self.w_sketch = CanvasWrapper(self.window, (1024, 658), (  20,  20), (  20,  20), "white",          FRAME_SKETCH_INSTRUCTIONS)
+        self.w_tools  = CanvasWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
+        self.w_colors = CanvasWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
+        self.w_layers = CanvasWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
 
 
         # - drawing area: (1024, 658)
@@ -54,8 +54,14 @@ class Window:
         self.mouseScroll = 0
         
         self.w_sketch.clear()
+        self.w_tools .clear()
+        self.w_colors.clear()
+        self.w_layers.clear()
 
         self.interface.processSketch(self.w_sketch)
+        self.interface.processTools (self.w_tools )
+        self.interface.processColors(self.w_colors)
+        self.interface.processLayers(self.w_layers)
 
 
         self.window.after(TICK_MS, self.windowProcesses)
@@ -67,7 +73,7 @@ class Window:
             self.fpsGood = True
         if math.ceil(time.time()) == round(time.time()) and self.fpsGood:
             self.fpsGood = False
-        print(f"FPS: {self.fps}")
+        # print(f"FPS: {self.fps}")
 
     def windowOccasionalProcesses(self):
         '''window processes that happen less frequently (once every 3 seconds)'''

@@ -4,14 +4,20 @@ from PIL import Image, ImageTk
 from subsystems.render import getRegion
 
 class CanvasWrapper:
-    def __init__(self, root, size, offset = (0,0), place = (0,0), bg = "white"):
+    def __init__(self, root, size, offset = (0,0), place = (0,0), bg = "white", default:numpy.ndarray = ""):
         self.offset = offset
         self.size = size
-        self.canvas = tk.Canvas(root, width=size[0], height=size[1], bg='white', highlightthickness=0, bd=0)
+        self.canvas = tk.Canvas(root, width=size[0], height=size[1], bg=bg, highlightthickness=0, bd=0)
         self.canvas.pack()
         self.canvas.place(x = place[0], y = place[1])
 
         self.cache = []
+        if type(default) != str:
+            self.hasDefault = True
+            self.default = [[ImageTk.PhotoImage(Image.fromarray(instruction[0])), (instruction[1][0], instruction[1][1])] for instruction in default]
+        else:
+            self.hasDefault = False
+
 
     def placeOver(self, image:numpy.ndarray, position:list|tuple, center = False):
         if center:
@@ -27,3 +33,5 @@ class CanvasWrapper:
 
     def clear(self):
         self.cache = []
+        if self.hasDefault:
+            for instruction in self.default: self.canvas.create_image(instruction[1][0], instruction[1][1], image=instruction[0], anchor=tk.NW)

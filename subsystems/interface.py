@@ -5,7 +5,8 @@ from PIL import ImageTk, Image
 from tkinter import filedialog
 import time, random, ast, cv2
 from subsystems.render import *
-from subsystems.fancy import displayText, generateColorBox, generateBorderBox, generateIcon, translatePastelLight
+from subsystems.fancy import *
+from subsystems.simplefancy import *
 from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, PointVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
@@ -33,7 +34,7 @@ class Interface:
             -999 : [" ", DummyVisualObject("dummy", (0,0))],
             -998 : [" ", DummyVisualObject("dummy", (0,0))],
 
-            self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
+            # self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
         }
         #for i in range(10): self.interactableVisualObjects[self.c.c()] = ["a", OrbVisualObject(f"test{i}")]
 
@@ -81,15 +82,15 @@ class Interface:
             self.interacting = -999
         if self.interacting == -999 and self.mPressed and self.mRising:
             for id in self.interactableVisualObjects:
-                if self.interactableVisualObjects[id][0] == "a":
-                    if self.interactableVisualObjects[id][1].getInteractable(self.mx - 23, self.my - 36):
+                if self.interactableVisualObjects[id][0] == "s":
+                    if self.interactableVisualObjects[id][1].getInteractable(self.mx - 20, self.my - 20):
                         self.interacting = id
                         break
         if self.interacting != -999:
             section = self.interactableVisualObjects[self.interacting][0]
-            if section == "a": 
-                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 23, self.my - 36)
-                self.interactableVisualObjects[self.interacting][1].keepInFrame(903,507)
+            if section == "s": 
+                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 20, self.my - 20)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(1024,658)
         if ((self.mPressed)) and (previousInteracting == -999) and (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"): 
             self.stringKeyQueue = self.interactableVisualObjects[self.interacting][1].txt
         if (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"):
@@ -106,7 +107,7 @@ class Interface:
                     self.interacting = previousInteracting
 
     def processSketch(self, c:CanvasWrapper):
-        '''Sketch Area: `(20,20) to (1043,677)`: size `(1024, 658)`'''
+        '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
         rmx = self.mx - 20
         rmy = self.my - 20
 
@@ -118,7 +119,7 @@ class Interface:
         c.placeOver(displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m", colorTXT=(0,0,0,255)), (455,95))
 
         for id in self.interactableVisualObjects:
-            if self.interactableVisualObjects[id][0] == "a":
+            if self.interactableVisualObjects[id][0] == "s":
                 self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
 
         tempPath = []
@@ -127,40 +128,28 @@ class Interface:
                 tempPath.append(self.interactableVisualObjects[id][1].positionO.getPosition())
 
     
-    def getImageTimeline(self):
-        '''Timeline Interface: `(23,558) to (925,680)`: size `(903,123)`'''
-        img = FRAME_TIMELINE_ARRAY.copy()
+    def processTools(self, c:CanvasWrapper):
+        '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
-                if self.interactableVisualObjects[id][1].name == "play pause button":
-                    self.interactableVisualObjects[id][1].tick(img, self.animationPlaying)
-                else:
-                    self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+                self.interactableVisualObjects[id][1].tick(c, self.animationPlaying)
 
-        return arrayToImage(img)
     
-    def getImageOptions(self):
-        '''Options Interface: `(953,558) to (1340,680)`: size `(388,123)`'''
-        img = FRAME_OPTIONS_ARRAY.copy()
-        
-        self.previousEditorTab = self.editorTab 
+    def processColors(self, c:CanvasWrapper):
+        '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
 
         for id in self.interactableVisualObjects:
-            if self.interactableVisualObjects[id][0] == "o":
-                if self.interacting==id and self.interactableVisualObjects[id][1].name in ["sprites", "visuals", "project"]: self.editorTab = self.interactableVisualObjects[id][1].name[0]
-                self.interactableVisualObjects[id][1].tick(img, self.interacting==id or (self.editorTab==self.interactableVisualObjects[id][1].name[0] and self.interactableVisualObjects[id][1].name in ["sprites", "visuals", "project"]))
+            if self.interactableVisualObjects[id][0] == "c":
+                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
 
-        if 23 <= self.mx and self.mx <= 925 and 36 <= self.my and self.my <= 542:
-            placeOver(img, displayText(f"rx: {self.mx-23}", "m"), (20,73)) 
-            placeOver(img, displayText(f"ry: {self.my-36}", "m"), (80,73))
-        else:            
-            placeOver(img, displayText(f"x: {self.mx}", "m", colorTXT=(155,155,155,255)), (20,73)) 
-            placeOver(img, displayText(f"y: {self.my}", "m", colorTXT=(155,155,155,255)), (80,73))
-        placeOver(img, displayText(f"FPS: {self.fps}", "m", colorTXT=(155,155,155,255)), (20,95))
-        placeOver(img, displayText(f"Interacting: {self.interacting}", "m", colorTXT= (225,225,225,255) if self.mPressed else (155,155,155,255)), (80,95))
-        placeOver(img, displayText("Sprites                  Visuals                  Project", "m"), (193, 31), True)
-        return arrayToImage(img)
+    def processLayers(self, c:CanvasWrapper):
+        '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
+
+        for id in self.interactableVisualObjects:
+            if self.interactableVisualObjects[id][0] == "c":
+                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
+        
 
     def saveState(self):
         pass
