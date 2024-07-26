@@ -5,12 +5,13 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import time, math
 from subsystems.interface import Interface
+from subsystems.canvas import CanvasWrapper
 from settings import *
 
 class Window:
     def __init__(self):
         '''initalize tk window'''
-        self.window= tk.Tk()
+        self.window = tk.Tk()
         self.window.grid()
         self.window.title("Tape")
         self.window.geometry("1366x698")
@@ -24,10 +25,16 @@ class Window:
 
         '''load test image'''
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
-        self.w_animation = tk.Label(self.window, image = testImage, highlightthickness=0, bd=0)
-        self.w_animation.grid(column=0,row=1, padx=(23,27), pady=(36,15))
-        self.w_timeline = tk.Label(self.window, image = testImage, highlightthickness=0, bd=0)
-        self.w_timeline.grid(column=0,row=2, padx=(23,27), pady=(0,0))
+        self.w_sketch = CanvasWrapper(self.window, (1024, 658), (  20,  20), (  20,  20))
+        self.w_tools  = CanvasWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20))
+        self.w_colors = CanvasWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212))
+        self.w_layers = CanvasWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380))
+
+
+        # - drawing area: (1024, 658)
+        # - tools area: (288, 179)
+        # - color picker area: (288, 155)
+        # - layers area: (288, 298)
 
         '''start interface'''
         self.interface = Interface()
@@ -45,12 +52,12 @@ class Window:
         self.interface.tick(mx,my,self.mPressed, self.fps, self.keyQueue, self.mouseScroll)
         self.keyQueue = []
         self.mouseScroll = 0
-        img = ImageTk.PhotoImage(self.interface.getImageAnimation())
-        self.w_animation.configure(image = img)
-        self.w_animation.image=img
-        img = ImageTk.PhotoImage(self.interface.getImageTimeline())
-        self.w_timeline.configure(image = img)
-        self.w_timeline.image = img
+        
+        self.w_sketch.clear()
+
+        self.interface.processSketch(self.w_sketch)
+
+
         self.window.after(TICK_MS, self.windowProcesses)
 
         self.fpsCounter +=1
@@ -60,7 +67,7 @@ class Window:
             self.fpsGood = True
         if math.ceil(time.time()) == round(time.time()) and self.fpsGood:
             self.fpsGood = False
-        # print(f"FPS: {self.fps}")
+        print(f"FPS: {self.fps}")
 
     def windowOccasionalProcesses(self):
         '''window processes that happen less frequently (once every 3 seconds)'''

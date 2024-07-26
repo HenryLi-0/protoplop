@@ -30,8 +30,6 @@ def clip(img:Image.Image|numpy.ndarray, cliplen: int, direction: str):
     elif direction == "W": return img[:, :-cliplen, :]
     else: return img
 
-    import numpy as np
-
 def addBlank(img:Image.Image|numpy.ndarray, add: int, direction: str):
     '''Returns the image with added add "empty" pixels in a given direction'''
     img = numpy.array(img)

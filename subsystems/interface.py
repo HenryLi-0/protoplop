@@ -9,6 +9,7 @@ from subsystems.fancy import displayText, generateColorBox, generateBorderBox, g
 from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, PointVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
+from subsystems.canvas import CanvasWrapper
 
 class Interface:
     def __init__(self):
@@ -67,9 +68,8 @@ class Interface:
                     self.interacting = -998
                     break
             if self.interacting == -999:
-                if self.editorTab == "s":
-                    if key in KB_SPRITE_LIST_OFFSET_UP:   self.spriteListVelocity -= 25
-                    if key in KB_SPRITE_LIST_OFFSET_DOWN: self.spriteListVelocity += 25
+                if key in KB_SPRITE_LIST_OFFSET_UP:   self.spriteListVelocity -= 25
+                if key in KB_SPRITE_LIST_OFFSET_DOWN: self.spriteListVelocity += 25
                             
         self.mouseScroll = mouseScroll
 
@@ -105,29 +105,27 @@ class Interface:
                 if not(self.interacting == -998):
                     self.interacting = previousInteracting
 
-    def getImageAnimation(self):
-        '''Animation Interface: `(23,36) to (925,542)`: size `(903,507)`'''
-        rmx = self.mx - 23
-        rmy = self.my - 36
-        img = FRAME_ANIMATION_ARRAY.copy()
+    def processSketch(self, c:CanvasWrapper):
+        '''Sketch Area: `(20,20) to (1043,677)`: size `(1024, 658)`'''
+        rmx = self.mx - 20
+        rmy = self.my - 20
 
-        # placeOver(img, displayText(f"FPS: {self.fps}", "m"), (55,15))
-        # placeOver(img, displayText(f"Relative (animation) Mouse Position: ({self.mx-23}, {self.my-36})", "m"), (455,55))
-        # placeOver(img, displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (55,55))
-        # placeOver(img, displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (55,95))
-        # placeOver(img, displayText(f"Interacting With Element: {self.interacting}", "m"), (455,15))
-        # placeOver(img, displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m"), (455,95))
+        c.placeOver(displayText(f"FPS: {self.fps}", "m", colorTXT=(0,0,0,255)), (55,15))
+        c.placeOver(displayText(f"Relative (animation) Mouse Position: ({self.mx-23}, {self.my-36})", "m", colorTXT=(0,0,0,255)), (455,55))
+        c.placeOver(displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (55,55))
+        c.placeOver(displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (55,95))
+        c.placeOver(displayText(f"Interacting With Element: {self.interacting}", "m", colorTXT=(0,0,0,255)), (455,15))
+        c.placeOver(displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m", colorTXT=(0,0,0,255)), (455,95))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "a":
-                self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
 
         tempPath = []
         for id in self.interactableVisualObjects: 
             if self.interactableVisualObjects[id][1].type == "orb": 
                 tempPath.append(self.interactableVisualObjects[id][1].positionO.getPosition())
-                
-        return arrayToImage(img)
+
     
     def getImageTimeline(self):
         '''Timeline Interface: `(23,558) to (925,680)`: size `(903,123)`'''

@@ -110,9 +110,9 @@ class OrbVisualObject:
         self.name = name
         self.positionO = CircularPositionalBox(50)
         self.positionO.setPosition((random.randrange(0,903), random.randrange(0,507)))
-    def tick(self, window, active):
-        placeOver(window, ORB_SELECTED_ARRAY if active else ORB_IDLE_ARRAY, self.positionO.getPosition(), True)
-        placeOver(window, displayText(self.name, "m"), self.positionO.getPosition(), True)
+    def tick(self, c, active):
+        c.placeOver(ORB_SELECTED_ARRAY if active else ORB_IDLE_ARRAY, self.positionO.getPosition(), True)
+        c.placeOver(displayText(self.name, "m"), self.positionO.getPosition(), True)
     def updatePos(self, rmx, rmy):
         self.positionO.setPosition((rmx, rmy))
     def keepInFrame(self, maxX, maxY):
@@ -130,8 +130,8 @@ class ButtonVisualObject:
         self.img = img
         self.img2 = img2
         self.positionO = RectangularPositionalBox((img.shape[1],img.shape[0]), pos[0], pos[1])
-    def tick(self, window, active):
-        placeOver(window, self.img2 if active else self.img, self.positionO.getPosition(), False)
+    def tick(self, c, active):
+        c.placeOver(self.img2 if active else self.img, self.positionO.getPosition(), False)
     def updatePos(self, rmx, rmy):
         pass
     def keepInFrame(self, maxX, maxY):
@@ -149,9 +149,9 @@ class EditableTextBoxVisualObject:
         self.txt = startTxt
         self.txtImg = displayText(self.txt, "m")
         self.positionO = RectangularPositionalBox((max(self.txtImg.shape[1],10),max(self.txtImg.shape[0],23)), pos[0], pos[1])
-    def tick(self, window, active):
-        placeOver(window, generateColorBox(self.positionO.getBBOX(), hexColorToRGBA(FRAME_COLOR) if active else hexColorToRGBA(BACKGROUND_COLOR)), self.positionO.getPosition())
-        placeOver(window, self.txtImg, self.positionO.getPosition(), False)
+    def tick(self, c, active):
+        c.placeOver(generateColorBox(self.positionO.getBBOX(), hexColorToRGBA(FRAME_COLOR) if active else hexColorToRGBA(BACKGROUND_COLOR)), self.positionO.getPosition())
+        c.placeOver(self.txtImg, self.positionO.getPosition(), False)
     def updateText(self, txt):
         if self.txt!=txt:
             self.txt = txt
@@ -172,7 +172,7 @@ class DummyVisualObject:
         self.type = "dummy"
         self.name = name
         self.positionO = RectangularPositionalBox((0,0), pos[0], pos[1])
-    def tick(self, window, active):
+    def tick(self, c, active):
         pass
     def updatePos(self, rmx, rmy):
         pass
@@ -189,14 +189,14 @@ class PointVisualObject:
         self.positionO = CircularPositionalBox(15)
         self.positionO.setPosition(pos)
         self.pointData = ""
-    def tick(self, window, active):
+    def tick(self, c, active):
         place = addP(self.positionO.getPosition(), (29,242))
         if 27<=place[0] and 221<=place[1] and place[0]<=383 and place[1]<=477:
-            placeOver(window, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, place, True)
+            c.placeOver(POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, place, True)
         if type(self.pointData)in [int, float]:
-            if active: placeOver(window, displayText(str(roundf(self.pointData, FLOAT_ACCURACY)), "m"), addP(self.positionO.getPosition(), (29,222)), True)
+            if active: c.placeOver(displayText(str(roundf(self.pointData, FLOAT_ACCURACY)), "m"), addP(self.positionO.getPosition(), (29,222)), True)
         else:
-            if active: placeOver(window, displayText(str(self.pointData), "m"), addP(self.positionO.getPosition(), (29,222)), True)
+            if active: c.placeOver(displayText(str(self.pointData), "m"), addP(self.positionO.getPosition(), (29,222)), True)
         if active: return self.pointData
     def updatePos(self, rmx, rmy):
         self.positionO.setPosition((rmx, rmy))
