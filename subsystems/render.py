@@ -115,9 +115,9 @@ def rotateDegHundred(img: numpy.ndarray, cent:float):
     return numpy.array(Image.fromarray(img).rotate(cent*3.6,expand=True))
 
 def setSize(img: numpy.ndarray, size):
-    '''Returns a copy of the given image scaled by size, given the size change (given with 50 as normal, >50 scale up, <50 scale down)'''
+    '''Returns a copy of the given image scaled by size, given the size change (given with 100 as normal, >100 scale up, <100 scale down)'''
     y, x, temp = img.shape
-    return numpy.array(Image.fromarray(img).resize((max(1, (round(x*(size/50)**2))),max(1, round(y*(size/50)**2)))))
+    return numpy.array(Image.fromarray(img).resize((max(1, (round(x*(size/100)))),max(1, round(y*(size/100)))),Image.Resampling.NEAREST))
 
 def setColorEffect(img: numpy.ndarray, colorEffect):
     '''Returns a copy of the given image with a color shift, given the shift value (given 0-100)'''

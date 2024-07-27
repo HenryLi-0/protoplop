@@ -13,19 +13,19 @@ class Window:
         '''initalize tk window'''
         self.window = tk.Tk()
         self.window.grid()
-        self.window.title("Tape")
+        self.window.title("Protoplop")
         self.window.geometry("1366x698")
         self.window.configure(background=BACKGROUND_COLOR)
         self.fps = 0
         self.fpsCounter = 0
         self.fpsGood = False
         self.mPressed = False
-        self.keyQueue = []
+        self.keysPressed = []
         self.mouseScroll = 0
 
         '''load test image'''
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
-        self.w_sketch = CanvasWrapper(self.window, (1024, 658), (  20,  20), (  20,  20), "white",          FRAME_SKETCH_INSTRUCTIONS)
+        self.w_sketch = CanvasWrapper(self.window, (1024, 658), (  20,  20), (  20,  20), VOID_COLOR,       FRAME_SKETCH_INSTRUCTIONS)
         self.w_tools  = CanvasWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
         self.w_colors = CanvasWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
         self.w_layers = CanvasWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
@@ -43,8 +43,7 @@ class Window:
             self.mPressed = 0
 
         '''update screens'''
-        self.interface.tick(mx,my,self.mPressed, self.fps, self.keyQueue, self.mouseScroll)
-        self.keyQueue = []
+        self.interface.tick(mx,my,self.mPressed, self.fps, self.keysPressed, self.mouseScroll)
         self.mouseScroll = 0
         
 
@@ -82,8 +81,13 @@ class Window:
     def getFPS(self): return self.fps
     def mPress(self, side = 0): self.mPressed = 1
     def mRelease(self, side = 0): self.mPressed = -999
-    def keyPressed(self, key): self.keyQueue.append(str(key.keysym))
     def mouseWheel(self, event): self.mouseScroll -= event.delta
+    def keyPressed(self, key): 
+        if (not str(key.keysym) in self.keysPressed) and (not str(key.keysym) in KB_IGNORE):
+            self.keysPressed.append(str(key.keysym))
+    def keyReleased(self, key):
+        if str(key.keysym) in self.keysPressed:
+            self.keysPressed.remove(str(key.keysym))
     
     def start(self):
         '''start window main loop'''
@@ -91,7 +95,8 @@ class Window:
         
         self.window.bind("<ButtonPress-1>", self.mPress)
         self.window.bind("<ButtonRelease-1>", self.mRelease)
-        self.window.bind("<Key>", self.keyPressed)
+        self.window.bind("<KeyPress>", self.keyPressed)
+        self.window.bind("<KeyRelease>", self.keyReleased)
         self.window.bind_all("<MouseWheel>", self.mouseWheel)
 
         self.window.after(TICK_MS, self.windowProcesses)

@@ -21,7 +21,7 @@ OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it run
 BACKGROUND_COLOR = "#333247" #Background color
 FRAME_COLOR      = "#524f6b" #Borders and Frame color
 SELECTED_COLOR   = "#bebcd5" #Selected Element color
-SOME_COLOR_UHH   = "#84829b" #not sure
+VOID_COLOR       = "#84829b" #Void color
 
 hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
 
@@ -32,27 +32,10 @@ PATH_SAVE_DEFAULT = os.path.join("tapes")
 FORMAT_TIME = lambda x: time.strftime("%I:%M:%S %p %m/%d/%Y", time.localtime(x))
 
 '''Keybinds'''
-EDITOR_VISUAL_KEYBINDS = {
-    1 : "C",
-    2 : "R",
-    3 : "A",
-    4 : "S",
-    5 : "H",
-    6 : "T",
-    7 : "B",
-    8 : "W"
-}
-KB_EDITOR_VISUAL_LINEAR_CONNECTION = ["Q", "q"]
-KB_EDITOR_VISUAL_SMOOTH_CONNECTION = ["W", "w"]
-KB_CREATE = ["A", "a"]
+KB_IGNORE = ["Win_L"]
+KB_ZOOM   = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("space" in keys)
 KB_DELETE = ["S", "s"]
-KB_EDITOR_VISUAL_OFFSET_LEFT = ["Z", "z"]
-KB_EDITOR_VISUAL_OFFSET_RIGHT = ["X", "x"]
-KB_TIMELINE_OFFSET_LEFT = ["Left"]
-KB_TIMELINE_OFFSET_RIGHT = ["Right"]
-KB_ANIMATION_POINT_POSITION_EDIT = ["D", "d"]
-KB_SPRITE_LIST_OFFSET_UP = ["Up"]
-KB_SPRITE_LIST_OFFSET_DOWN = ["Down"]
+
 
 '''Constants - DO NOT CHANGE!!!'''
 '''Do not change these constants. Some are probably important. Some are used for testing purposes. 

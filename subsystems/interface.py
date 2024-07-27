@@ -34,8 +34,9 @@ class Interface:
         l - layers
         '''
         self.interactableVisualObjects = {
-            -999 : [" ", DummyVisualObject("dummy", (0,0))],
-            -998 : [" ", DummyVisualObject("dummy", (0,0))],
+            -999 : [" ", DummyVisualObject("dummy", (0,0))], # used for not interacting with anything
+            -998 : [" ", DummyVisualObject("dummy", (0,0))], # used for text boxes
+            -997 : [" ", DummyVisualObject("dummy", (0,0))], # to be used by keybinds
 
             # self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
         }
@@ -44,6 +45,10 @@ class Interface:
         self.interacting = -999
         self.stringKeyQueue = ""
         self.mouseScroll = 0 
+
+        
+        self.cameraPos = (0,0)
+        self.sketchZoom = 100
 
         pass
 
@@ -56,10 +61,16 @@ class Interface:
         self.fps = fps
         self.deltaTicks = 1 if self.fps==0 else round(INTERFACE_FPS/self.fps)
         self.ticks += self.deltaTicks
+        
+        self.mouseInSketchSection =   20 <= self.mx and self.mx <= 1043 and   20 <= self.my and self.my <=  677
+        self.mouseInToolsSection  = 1057 <= self.mx and self.mx <= 1344 and   20 <= self.my and self.my <=  198
+        self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
+        self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
+        
         if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
             print("button press")
 
-        '''Keyboard and Scroll (graph and timeline)'''
+        '''Keyboard'''
         for key in keyQueue: 
             if key in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":
                 self.stringKeyQueue+=key
@@ -68,14 +79,22 @@ class Interface:
                     self.stringKeyQueue+=" "
                 if key=="BackSpace":
                     self.stringKeyQueue=self.stringKeyQueue[0:-1]
-                if key=="Return" or key=="Control_L":
+                if key=="Return":
                     self.interacting = -998
                     break
-            if self.interacting == -999:
-                if key in KB_SPRITE_LIST_OFFSET_UP:   pass
-                if key in KB_SPRITE_LIST_OFFSET_DOWN: pass
-                            
+        if self.interacting == -999 or self.interacting == -997:
+            if KB_ZOOM(keyQueue):
+                pass
+
+        '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
+        if abs(self.mouseScroll) > 0:
+            if self.mouseInSketchSection:
+                self.sketchZoom -= self.mouseScroll/10
+                if self.sketchZoom < 1: self.sketchZoom = 1
+                if self.sketchZoom > 10000: self.sketchZoom = 10000
+        
+        self.sketchZoomMulScaled = (1000/64)*self.sketchZoom
 
         pass
 
@@ -135,12 +154,8 @@ class Interface:
         rmx = self.mx - 20
         rmy = self.my - 20
 
-        c.placeOver(displayText(f"FPS: {self.fps}", "m", colorTXT=(0,0,0,255)), (55,15))
-        c.placeOver(displayText(f"Relative (animation) Mouse Position: ({self.mx-23}, {self.my-36})", "m", colorTXT=(0,0,0,255)), (455,55))
-        c.placeOver(displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (55,55))
-        c.placeOver(displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (55,95))
-        c.placeOver(displayText(f"Interacting With Element: {self.interacting}", "m", colorTXT=(0,0,0,255)), (455,15))
-        c.placeOver(displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m", colorTXT=(0,0,0,255)), (455,95))
+        c.placeOver(displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
+        c.placeOver(setSize(PLACEHOLDER_IMAGE_5_ARRAY, self.sketchZoomMulScaled), (50,50))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":
@@ -169,6 +184,13 @@ class Interface:
 
     def processLayers(self, c:CanvasWrapper):
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
+
+        c.placeOver(displayText(f"FPS: {self.fps}", "m"), (15,15))
+        c.placeOver(displayText(f"R(S) Mouse Position: ({self.mx-23}, {self.my-36})", "m"), (15,55))
+        c.placeOver(displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (15,95))
+        c.placeOver(displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (15,135))
+        c.placeOver(displayText(f"Interacting With Element: {self.interacting}", "m"), (15,175))
+        c.placeOver(displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m"), (15,215))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "l":

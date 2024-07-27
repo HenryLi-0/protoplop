@@ -167,11 +167,12 @@ class EditableTextBoxVisualObject:
         return self.positionO.getInteract(rmx, rmy)
     
 class DummyVisualObject:
-    '''I sit around doing nothing. Like that one group member in randomly assigned class projects. That person didn't deserve that 100, did they now? (joke)'''
-    def __init__(self, name, pos:tuple|list):
+    '''I sit around doing nothing and can store data. A little better that one group member in randomly assigned class projects. That person didn't deserve that 100, did they now? (joke)'''
+    def __init__(self, name, pos:tuple|list, data = None):
         self.type = "dummy"
         self.name = name
         self.positionO = RectangularPositionalBox((0,0), pos[0], pos[1])
+        self.data = data
     def tick(self, c, active):
         pass
     def updatePos(self, rmx, rmy):
