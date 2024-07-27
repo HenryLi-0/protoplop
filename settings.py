@@ -15,7 +15,7 @@ FLOAT_ACCURACY = 3 #This is how many digits after the decimal point things will 
 
 '''Visuals'''
 INTERFACE_FPS = 60 # The interface window will be called every 1/INTERFACE_FPS seconds
-TICK_MS = round((1/INTERFACE_FPS)*1000)
+TICK_MS = 1 #round((1/INTERFACE_FPS)*1000)
 OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it runs processes that do not need updates every tick
 
 BACKGROUND_COLOR = "#333247" #Background color
@@ -89,27 +89,12 @@ EDITOR_SPACING = lambda x: x*20+15
 
 # Blank Interface Sections
 '''
-- Animation Interface: `(23,36) to (925,542)`: size `(903,507)`
-- Timeline Interface: `(23,558) to (925,680)`: size `(903,123)`
-- Editor Interface: `(953,36) to (1340,542)`: size `(388,507)`
-- Options Interface: `(953,558) to (1340,680)`: size `(388,123)`
-- Entire Screen: `(0,0) to (1365,697)`: size `(1366,698)`
+- Sketch Area:   `(  20,  20) to (1043, 677)` : size `(1024, 658)`
+- Tools Area:    `(1057,  20) to (1344, 198)` : size `( 288, 179)`
+- Colors Area:   `(1057, 212) to (1344, 366)` : size `( 288, 155)`
+- Layers Area:   `(1057, 380) to (1344, 677)` : size `( 288, 298)`
+- Entire Screen: `(   0,   0) to (1365, 697)` : size `(1366, 698)`
 '''
-
-D_FRAME_ANIMATION_PATH = os.path.join("resources", "themed", "frame_animation.png")
-D_FRAME_TIMELINE_PATH = os.path.join("resources", "themed", "frame_timeline.png")
-D_FRAME_TIMELINE_READER_PATH = os.path.join("resources", "themed", "frame_timeline_reader.png")
-D_FRAME_EDITOR_PATH = os.path.join("resources", "themed", "frame_editor.png")
-D_FRAME_EDITOR_VISUALS_PATH = os.path.join("resources", "themed", "frame_editor_visuals.png")
-D_FRAME_EDITOR_VISUALS_GRAPH_PATH = os.path.join("resources", "themed", "frame_editor_visuals_graph.png")
-D_FRAME_EDITOR_VISUALS_GRAPH_BAR_PATH = os.path.join("resources", "themed", "frame_editor_visuals_graph_bar.png")
-D_FRAME_OPTIONS_PATH = os.path.join("resources", "themed", "frame_options.png")
-D_FRAME_OPTIONS_BUTTON_PATH = os.path.join("resources", "themed", "frame_options_button.png")
-
-# - drawing area: (1024, 658)
-# - tools area: (288, 179)
-# - color picker area: (288, 155)
-# - layers area: (288, 298)
 
 FRAME_SKETCH_INSTRUCTIONS = genereateThemedBorderRectangleInstructions((1024, 658),hexColorToRGBA(FRAME_COLOR))
 FRAME_TOOLS_INSTRUCTIONS  = genereateThemedBorderRectangleInstructions(( 288, 179),hexColorToRGBA(FRAME_COLOR))

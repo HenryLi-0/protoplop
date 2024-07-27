@@ -28,7 +28,10 @@ class Interface:
         '''Interactable Visual Objects'''
         '''
         Code:
-        a - animation
+        s - sketch
+        t - tools
+        c - colors
+        l - layers
         '''
         self.interactableVisualObjects = {
             -999 : [" ", DummyVisualObject("dummy", (0,0))],
@@ -69,8 +72,8 @@ class Interface:
                     self.interacting = -998
                     break
             if self.interacting == -999:
-                if key in KB_SPRITE_LIST_OFFSET_UP:   self.spriteListVelocity -= 25
-                if key in KB_SPRITE_LIST_OFFSET_DOWN: self.spriteListVelocity += 25
+                if key in KB_SPRITE_LIST_OFFSET_UP:   pass
+                if key in KB_SPRITE_LIST_OFFSET_DOWN: pass
                             
         self.mouseScroll = mouseScroll
 
@@ -86,11 +89,32 @@ class Interface:
                     if self.interactableVisualObjects[id][1].getInteractable(self.mx - 20, self.my - 20):
                         self.interacting = id
                         break
+                if self.interactableVisualObjects[id][0] == "t":
+                    if self.interactableVisualObjects[id][1].getInteractable(self.mx - 1057, self.my - 20):
+                        self.interacting = id
+                        break
+                if self.interactableVisualObjects[id][0] == "c":
+                    if self.interactableVisualObjects[id][1].getInteractable(self.mx - 1057, self.my - 212):
+                        self.interacting = id
+                        break
+                if self.interactableVisualObjects[id][0] == "l":
+                    if self.interactableVisualObjects[id][1].getInteractable(self.mx - 1057, self.my - 380):
+                        self.interacting = id
+                        break
         if self.interacting != -999:
             section = self.interactableVisualObjects[self.interacting][0]
             if section == "s": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 20, self.my - 20)
                 self.interactableVisualObjects[self.interacting][1].keepInFrame(1024,658)
+            if section == "t": 
+                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 20)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,179)
+            if section == "c": 
+                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 212)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,155)
+            if section == "l": 
+                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 380)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,298)
         if ((self.mPressed)) and (previousInteracting == -999) and (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"): 
             self.stringKeyQueue = self.interactableVisualObjects[self.interacting][1].txt
         if (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"):
@@ -133,7 +157,7 @@ class Interface:
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
-                self.interactableVisualObjects[id][1].tick(c, self.animationPlaying)
+                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
 
     
     def processColors(self, c:CanvasWrapper):
@@ -147,7 +171,7 @@ class Interface:
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
 
         for id in self.interactableVisualObjects:
-            if self.interactableVisualObjects[id][0] == "c":
+            if self.interactableVisualObjects[id][0] == "l":
                 self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
         
 

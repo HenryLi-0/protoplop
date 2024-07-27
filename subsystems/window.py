@@ -30,12 +30,6 @@ class Window:
         self.w_colors = CanvasWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
         self.w_layers = CanvasWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
 
-
-        # - drawing area: (1024, 658)
-        # - tools area: (288, 179)
-        # - color picker area: (288, 155)
-        # - layers area: (288, 298)
-
         '''start interface'''
         self.interface = Interface()
 
@@ -53,18 +47,15 @@ class Window:
         self.keyQueue = []
         self.mouseScroll = 0
         
-        self.w_sketch.clear()
-        self.w_tools .clear()
-        self.w_colors.clear()
-        self.w_layers.clear()
 
         self.interface.processSketch(self.w_sketch)
+        self.w_sketch.clear()
         self.interface.processTools (self.w_tools )
+        self.w_tools .clear()
         self.interface.processColors(self.w_colors)
+        self.w_colors.clear()
         self.interface.processLayers(self.w_layers)
-
-
-        self.window.after(TICK_MS, self.windowProcesses)
+        self.w_layers.clear()
 
         self.fpsCounter +=1
         if math.floor(time.time()) == round(time.time()) and not(self.fpsGood):
@@ -73,7 +64,8 @@ class Window:
             self.fpsGood = True
         if math.ceil(time.time()) == round(time.time()) and self.fpsGood:
             self.fpsGood = False
-        # print(f"FPS: {self.fps}")
+
+        self.window.after(TICK_MS, self.windowProcesses)
 
     def windowOccasionalProcesses(self):
         '''window processes that happen less frequently (once every 3 seconds)'''

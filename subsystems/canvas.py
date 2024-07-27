@@ -1,5 +1,5 @@
 import tkinter as tk
-import numpy, time, math
+import numpy, time, math, random 
 from PIL import Image, ImageTk
 from subsystems.render import getRegion
 
@@ -18,20 +18,21 @@ class CanvasWrapper:
         else:
             self.hasDefault = False
 
+        self.name = str(random.randint(0,999))
+
 
     def placeOver(self, image:numpy.ndarray, position:list|tuple, center = False):
         if center:
             pass
         else:
             copy = getRegion(image, (self.offset[0]-position[0]-self.offset[0],self.offset[1]-position[1]-self.offset[1]), (self.offset[0]+self.size[0]-position[0]-self.offset[0], self.offset[1]+self.size[1]-position[1]-self.offset[1]))
-            
-
+        
         photo = ImageTk.PhotoImage(Image.fromarray(copy))
-
         self.canvas.create_image(0, 0, image=photo, anchor=tk.CENTER if center else tk.NW)
         self.cache.append(photo)
 
     def clear(self):
         self.cache = []
         if self.hasDefault:
-            for instruction in self.default: self.canvas.create_image(instruction[1][0], instruction[1][1], image=instruction[0], anchor=tk.NW)
+            for instruction in self.default: 
+                self.canvas.create_image(instruction[1][0], instruction[1][1], image=instruction[0], anchor=tk.NW)
