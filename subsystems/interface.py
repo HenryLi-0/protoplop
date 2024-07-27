@@ -166,11 +166,12 @@ class Interface:
         '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
         rmx = self.mx - 20
         rmy = self.my - 20
-        
-        c.placeOver(displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
+
+        c.placeOver(setSize(self.drawingImage, self.sketchZoomMulScaled), (0,0))
         for ix in range(0,8+1):
             for iy in range(0,7+1):
-                c.placeOver(setSize(getRegion(self.drawingImage, (round(ix*self.sketchZoomMul), round(iy*self.sketchZoomMul)), (round((ix+1)*self.sketchZoomMul), round((iy+1)*self.sketchZoomMul))), self.sketchZoomMulScaled), (ix*128,iy*94))
+                # c.placeOver(getRegion(self.drawingImage, (round(ix*self.sketchZoomMulScaled), round(iy*self.sketchZoomMulScaled)), (round((ix+1)*self.sketchZoomMulScaled), round((iy+1)*self.sketchZoomMulScaled))), (ix*128,iy*94))
+                c.placeOver(displayText(f"region {(round(ix*12800/self.sketchZoomMulScaled), round(iy*9400/self.sketchZoomMulScaled))}", "s", colorBG=(0,0,0,255)), (ix*128, iy*94))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":
@@ -184,6 +185,7 @@ class Interface:
     
     def processTools(self, c:CanvasWrapper):
         '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
+        c.placeOver(displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":

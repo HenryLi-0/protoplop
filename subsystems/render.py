@@ -155,3 +155,10 @@ def setLimitedSize(img: numpy.ndarray, size):
     y, x, temp = img.shape
     scaleFactor = size/x if x>y else size/y
     return numpy.array(Image.fromarray(img).resize((max(1, (round(x*scaleFactor))),max(1, round(y*scaleFactor)))))
+
+def setLimitedSizeSize(img: numpy.ndarray, size:tuple|list):
+    '''Returns the a copy of the image scaled to fix inside a size shape'''
+    y, x, temp = img.shape
+    scaleFactor = size[0]/x
+    if size[1]/y < scaleFactor: scaleFactor = size[1]/y
+    return numpy.array(Image.fromarray(img).resize((max(1, (round(x*scaleFactor))),max(1, round(y*scaleFactor))), Image.Resampling.NEAREST))

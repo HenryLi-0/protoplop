@@ -2,6 +2,7 @@ import tkinter as tk
 import numpy, time, math, random 
 from PIL import Image, ImageTk
 from subsystems.render import getRegion
+from subsystems.point import roundp
 
 class CanvasWrapper:
     def __init__(self, root, size, offset = (0,0), place = (0,0), bg = "white", default:numpy.ndarray = ""):
@@ -25,7 +26,7 @@ class CanvasWrapper:
         if center:
             pass
         else:
-            copy = getRegion(image, (self.offset[0]-position[0]-self.offset[0],self.offset[1]-position[1]-self.offset[1]), (self.offset[0]+self.size[0]-position[0]-self.offset[0], self.offset[1]+self.size[1]-position[1]-self.offset[1]))
+            copy = getRegion(image, (round(self.offset[0]-position[0]-self.offset[0]),round(self.offset[1]-position[1]-self.offset[1])), (round(self.offset[0]+self.size[0]-position[0]-self.offset[0]), round(self.offset[1]+self.size[1]-position[1]-self.offset[1])))
         
         photo = ImageTk.PhotoImage(Image.fromarray(copy))
         self.canvas.create_image(0, 0, image=photo, anchor=tk.CENTER if center else tk.NW)
