@@ -48,14 +48,14 @@ class Window:
         self.mouseScroll = 0
         
 
-        self.interface.processSketch(self.w_sketch)
         self.w_sketch.clear()
-        self.interface.processTools (self.w_tools )
+        self.interface.processSketch(self.w_sketch)
         self.w_tools .clear()
-        self.interface.processColors(self.w_colors)
+        self.interface.processTools (self.w_tools )
         self.w_colors.clear()
-        self.interface.processLayers(self.w_layers)
+        self.interface.processColors(self.w_colors)
         self.w_layers.clear()
+        self.interface.processLayers(self.w_layers)
 
         self.fpsCounter +=1
         if math.floor(time.time()) == round(time.time()) and not(self.fpsGood):

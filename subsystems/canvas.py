@@ -32,6 +32,7 @@ class CanvasWrapper:
         self.cache.append(photo)
 
     def clear(self):
+        self.canvas.delete("all")
         self.cache = []
         if self.hasDefault:
             for instruction in self.default: 
