@@ -10,7 +10,7 @@ from subsystems.simplefancy import *
 from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, PointVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
-from subsystems.canvas import CanvasWrapper
+from subsystems.canvas import LabelWrapper
 
 class Interface:
     def __init__(self):
@@ -162,57 +162,66 @@ class Interface:
                 else:
                     self.interactableVisualObjects[previousInteracting][1].updateText(self.stringKeyQueue)
 
-    def processSketch(self, c:CanvasWrapper):
+    def processSketch(self, im):
         '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
+        img = im.copy()
         rmx = self.mx - 20
         rmy = self.my - 20
-
-        c.placeOver(setSize(self.drawingImage, self.sketchZoomMulScaled), (0,0))
+        placeOver(img, setSize(self.drawingImage, self.sketchZoomMulScaled), (0,0))
         for ix in range(0,8+1):
             for iy in range(0,7+1):
                 # c.placeOver(getRegion(self.drawingImage, (round(ix*self.sketchZoomMulScaled), round(iy*self.sketchZoomMulScaled)), (round((ix+1)*self.sketchZoomMulScaled), round((iy+1)*self.sketchZoomMulScaled))), (ix*128,iy*94))
-                c.placeOver(displayText(f"region {(round(ix*12800/self.sketchZoomMulScaled), round(iy*9400/self.sketchZoomMulScaled))}", "s", colorBG=(0,0,0,255)), (ix*128, iy*94))
+                placeOver(img, displayText(f"region {(round(ix*12800/self.sketchZoomMulScaled), round(iy*9400/self.sketchZoomMulScaled))}", "s", colorBG=(0,0,0,255)), (ix*128, iy*94))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":
-                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
+                self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
 
         tempPath = []
         for id in self.interactableVisualObjects: 
             if self.interactableVisualObjects[id][1].type == "orb": 
                 tempPath.append(self.interactableVisualObjects[id][1].positionO.getPosition())
 
+        return arrayToImage(img)
     
-    def processTools(self, c:CanvasWrapper):
+    def processTools(self, im):
         '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
-        c.placeOver(displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
+        img = im.copy()
+        placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
-                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
+                self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+
+        return arrayToImage(img)
 
     
-    def processColors(self, c:CanvasWrapper):
+    def processColors(self, im):
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
+        img = im.copy()
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "c":
-                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
+                self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
 
-    def processLayers(self, c:CanvasWrapper):
+        return arrayToImage(img)
+
+    def processLayers(self, im):
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
+        img = im.copy()
 
-        c.placeOver(displayText(f"FPS: {self.fps}", "m"), (15,15))
-        c.placeOver(displayText(f"R(S) Mouse Position: ({self.mx-23}, {self.my-36})", "m"), (15,55))
-        c.placeOver(displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (15,95))
-        c.placeOver(displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (15,135))
-        c.placeOver(displayText(f"Interacting With Element: {self.interacting}", "m"), (15,175))
-        c.placeOver(displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m"), (15,215))
+        placeOver(img, displayText(f"FPS: {self.fps}", "m"), (15,15))
+        placeOver(img, displayText(f"R(S) Mouse Position: ({self.mx-23}, {self.my-36})", "m"), (15,55))
+        placeOver(img, displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (15,95))
+        placeOver(img, displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (15,135))
+        placeOver(img, displayText(f"Interacting With Element: {self.interacting}", "m"), (15,175))
+        placeOver(img, displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m"), (15,215))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "l":
-                self.interactableVisualObjects[id][1].tick(c, self.interacting==id)
-        
+                self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+
+        return arrayToImage(img)
 
     def saveState(self):
         pass

@@ -2,7 +2,7 @@ import tkinter as tk
 import numpy, time, math
 from PIL import Image, ImageTk
 from subsystems.render import getRegion
-from subsystems.canvas import CanvasWrapper
+from subsystems.canvas import LabelWrapper
 
 IMAGE_ARRAY = numpy.array(Image.open("C:/Users/henry/Downloads/game image.png").convert("RGBA"))
 IMAGE_SIZE = (IMAGE_ARRAY.shape[1], IMAGE_ARRAY.shape[0])
@@ -26,7 +26,7 @@ class Window:
         self.fpsGood = False
         self.mPressed = False
 
-        self.canvas = CanvasWrapper(self.window, (500,250), (500,0))
+        self.canvas = LabelWrapper(self.window, (500,250), (500,0))
 
     def windowProcesses(self):
         '''window processes'''

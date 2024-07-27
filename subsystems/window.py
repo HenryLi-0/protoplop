@@ -5,7 +5,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import time, math
 from subsystems.interface import Interface
-from subsystems.canvas import CanvasWrapper
+from subsystems.canvas import LabelWrapper
 from settings import *
 
 class Window:
@@ -25,10 +25,14 @@ class Window:
 
         '''load test image'''
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
-        self.w_sketch = CanvasWrapper(self.window, (1024, 658), (  20,  20), (  20,  20), VOID_COLOR,       FRAME_SKETCH_INSTRUCTIONS)
-        self.w_tools  = CanvasWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
-        self.w_colors = CanvasWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
-        self.w_layers = CanvasWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
+        self.w_sketch = LabelWrapper(self.window, (1024, 658), (  20,  20), (  20,  20), VOID_COLOR      , FRAME_COLORS_INSTRUCTIONS)
+        self.b_sketch = self.w_sketch.getBlank() 
+        self.w_tools  = LabelWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
+        self.b_tools  = self.w_tools .getBlank() 
+        self.w_colors = LabelWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
+        self.b_colors = self.w_colors.getBlank() 
+        self.w_layers = LabelWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
+        self.b_layers = self.w_layers.getBlank() 
 
         '''start interface'''
         self.interface = Interface()
@@ -46,15 +50,10 @@ class Window:
         self.interface.tick(mx,my,self.mPressed, self.fps, self.keysPressed, self.mouseScroll)
         self.mouseScroll = 0
         
-
-        self.w_sketch.clear()
-        self.interface.processSketch(self.w_sketch)
-        self.w_tools .clear()
-        self.interface.processTools (self.w_tools )
-        self.w_colors.clear()
-        self.interface.processColors(self.w_colors)
-        self.w_layers.clear()
-        self.interface.processLayers(self.w_layers)
+        self.w_sketch.update(self.interface.processSketch(self.b_sketch))
+        self.w_tools .update(self.interface.processTools (self.b_tools ))
+        self.w_colors.update(self.interface.processColors(self.b_colors))
+        self.w_layers.update(self.interface.processLayers(self.b_layers))
 
         self.fpsCounter +=1
         if math.floor(time.time()) == round(time.time()) and not(self.fpsGood):
