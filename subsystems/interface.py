@@ -46,7 +46,11 @@ class Interface:
         self.stringKeyQueue = ""
         self.mouseScroll = 0 
 
-        
+
+        self.imageSize = (512,512)
+        self.drawingImage = PLACEHOLDER_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
+        self.drawingImage[:,:] = [255,255,255,255]
+        self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
         self.cameraPos = (0,0)
         self.sketchZoom = 100
 
@@ -83,8 +87,20 @@ class Interface:
                     self.interacting = -998
                     break
         if self.interacting == -999 or self.interacting == -997:
-            if KB_ZOOM(keyQueue):
-                pass
+            if KB_ZOOM(keyQueue) and self.mPressed:
+                if self.interacting == -999:
+                    self.interacting = -997
+                    self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom]
+                else:
+                    temp = self.interactableVisualObjects[-997][1].data
+                    self.sketchZoom = temp[2] + ((mx - temp[0]) + (my - temp[1]))/10
+                    if self.sketchZoom < 1: 
+                        self.sketchZoom = 1
+                        self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom]
+                    if self.sketchZoom > 10000: 
+                        self.sketchZoom = 10000
+                        self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom]
+
 
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
@@ -93,8 +109,8 @@ class Interface:
                 self.sketchZoom -= self.mouseScroll/10
                 if self.sketchZoom < 1: self.sketchZoom = 1
                 if self.sketchZoom > 10000: self.sketchZoom = 10000
-        
-        self.sketchZoomMulScaled = (1000/64)*self.sketchZoom
+
+        self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
 
         pass
 
@@ -145,17 +161,16 @@ class Interface:
                     self.interactableVisualObjects[self.interacting][1].updateText(self.stringKeyQueue)
                 else:
                     self.interactableVisualObjects[previousInteracting][1].updateText(self.stringKeyQueue)
-            if (self.selectedProperty == 1) and (self.interactableVisualObjects[previousInteracting][1].type  == "point"):
-                if not(self.interacting == -998):
-                    self.interacting = previousInteracting
 
     def processSketch(self, c:CanvasWrapper):
         '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
         rmx = self.mx - 20
         rmy = self.my - 20
-
+        
         c.placeOver(displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
-        c.placeOver(setSize(PLACEHOLDER_IMAGE_5_ARRAY, self.sketchZoomMulScaled), (50,50))
+        for ix in range(0,8+1):
+            for iy in range(0,7+1):
+                c.placeOver(setSize(getRegion(self.drawingImage, (round(ix*self.sketchZoomMul), round(iy*self.sketchZoomMul)), (round((ix+1)*self.sketchZoomMul), round((iy+1)*self.sketchZoomMul))), self.sketchZoomMulScaled), (ix*128,iy*94))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":

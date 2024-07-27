@@ -119,6 +119,11 @@ def setSize(img: numpy.ndarray, size):
     y, x, temp = img.shape
     return numpy.array(Image.fromarray(img).resize((max(1, (round(x*(size/100)))),max(1, round(y*(size/100)))),Image.Resampling.NEAREST))
 
+def setSizeSize(img: numpy.ndarray, size):
+    '''Returns a copy of the given image with set size size, given the exact target sizes'''
+    y, x, temp = img.shape
+    return numpy.array(Image.fromarray(img).resize((size[0], size[1]), Image.Resampling.NEAREST))
+
 def setColorEffect(img: numpy.ndarray, colorEffect):
     '''Returns a copy of the given image with a color shift, given the shift value (given 0-100)'''
     imgc = img.copy()
