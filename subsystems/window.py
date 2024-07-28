@@ -50,7 +50,9 @@ class Window:
         self.interface.tick(mx,my,self.mPressed, self.fps, self.keysPressed, self.mouseScroll)
         self.mouseScroll = 0
         
-        self.w_sketch.update(self.interface.processSketch(self.b_sketch))
+        if self.interface.updateSketch: 
+            self.w_sketch.update(self.interface.processSketch(self.b_sketch))
+            self.interface.updateSketch = False
         self.w_tools .update(self.interface.processTools (self.b_tools ))
         self.w_colors.update(self.interface.processColors(self.b_colors))
         self.w_layers.update(self.interface.processLayers(self.b_layers))

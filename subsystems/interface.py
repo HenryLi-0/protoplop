@@ -51,8 +51,10 @@ class Interface:
         self.drawingImage = LOADING_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
         # self.drawingImage[:,:] = [255,255,255,255]
         self.sketchZoomMul = 1024/max(self.imageSize[0], self.imageSize[1])
-        self.cameraPos = (0,0)
+        self.cameraPos = (-500,-250)
         self.sketchZoom = 100
+
+        self.updateSketch = True
 
         pass
 
@@ -71,6 +73,13 @@ class Interface:
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
         
+        self.pCalcX = lambda px: round((px*100/self.sketchZoomMulScaled)+self.cameraPos[0]) # mouse pos X -> image pixel pos X
+        self.pCalcY = lambda py: round((py*100/self.sketchZoomMulScaled)+self.cameraPos[1]) # mouse pos Y -> image pixel pos Y
+        self.pCalc  = lambda  p: round(  p*100/self.sketchZoomMulScaled                   ) # mouse pos   -> image pixel pos (ignores camera)
+        self.iCalcX = lambda ix: round((ix-self.cameraPos[0])*self.sketchZoomMulScaled/100) # image pixel pos X -> screen pos X
+        self.iCalcY = lambda iy: round((iy-self.cameraPos[1])*self.sketchZoomMulScaled/100) # image pixel pos Y -> screen pos Y
+        self.iCalc  = lambda  i: round(                     i*self.sketchZoomMulScaled/100)
+
         if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
             print("button press")
 
@@ -88,27 +97,35 @@ class Interface:
                     break
         if self.interacting == -999 or self.interacting == -997:
             if KB_ZOOM(keyQueue) and self.mPressed:
-                if self.interacting == -999:
+                '''ZOOM: CTRL + SPACE + MOUSE_MOVEMENT'''
+                self.updateSketch = True
+                if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
-                    self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom]
+                    self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom, self.pCalcX(512), self.pCalcY(329)]
                 else:
                     temp = self.interactableVisualObjects[-997][1].data
                     self.sketchZoom = temp[2] + ((mx - temp[0]) + (my - temp[1]))/10
                     if self.sketchZoom < 1: 
                         self.sketchZoom = 1
-                        self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom]
+                        self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom, temp[3], temp[4]]
                     if self.sketchZoom > 10000: 
                         self.sketchZoom = 10000
-                        self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom]
+                        self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom, temp[3], temp[4]]
+                    self.cameraPos = (self.pCalcX(self.iCalcX(temp[3])-512),self.pCalcY(self.iCalcY(temp[4])-329))
 
 
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
         if abs(self.mouseScroll) > 0:
             if self.mouseInSketchSection:
+                temp = (self.pCalcX(512), self.pCalcY(329))
+                self.updateSketch = True
                 self.sketchZoom -= self.mouseScroll/10
                 if self.sketchZoom < 1: self.sketchZoom = 1
                 if self.sketchZoom > 10000: self.sketchZoom = 10000
+                self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
+                self.cameraPos = self.pCalcX(self.iCalcX(temp[0])-512),self.pCalcY(self.iCalcY(temp[1])-329)
+                print(self.cameraPos)
 
         self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
 
@@ -162,6 +179,8 @@ class Interface:
                 else:
                     self.interactableVisualObjects[previousInteracting][1].updateText(self.stringKeyQueue)
 
+        
+
     def processSketch(self, im):
         '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
         img = im.copy()
@@ -170,21 +189,21 @@ class Interface:
 
         imageSY, imageSX, _ = self.drawingImage.shape
         
-        pCalc = lambda p: round(p*100/self.sketchZoomMulScaled)
-        iCalc = lambda i: round(i*self.sketchZoomMulScaled/100)
+        
         if self.sketchZoomMulScaled < 100:
             # The entire image is smaller than the screen
             scaledDrawingImage = setSize(self.drawingImage, round(self.sketchZoomMulScaled))
+            scaledDrawingImage = getRegion(scaledDrawingImage, (self.iCalcX(2*self.cameraPos[0]),self.iCalcY(2*self.cameraPos[1])), (1024 + self.iCalcX(2*self.cameraPos[0]), 658 + self.iCalcY(2*self.cameraPos[1])))
         else:
             # The image is in one dimension or another larger than the screen
-            scaledDrawingImage = getRegion(self.drawingImage, (0,0), (pCalc(1024), pCalc(658)), 2)
+            scaledDrawingImage = getRegion(self.drawingImage, (self.cameraPos[0],self.cameraPos[1]), (self.pCalcX(1024)+self.cameraPos[0], self.pCalcY(658)+self.cameraPos[1]), 2)
             scaledDrawingImage = resizeImage(scaledDrawingImage, (1024,658))
 
         for ix in range(0,8+1):
             for iy in range(0,7+1):
                 placeOver(img, setBrightness(getRegion(scaledDrawingImage, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), ix*10+iy), (ix*128, iy*94))
-                # placeOver(img, displayText(f"region {(pCalc(ix*128),iCalc(iy*94))}", "s", colorBG=(0,0,0,150)), (ix*128, iy*94))
-
+        
+        placeOver(img, displayText(f"imX: {self.pCalcX(rmx)} imY: {self.pCalcY(rmy)}", "s", (0,0,0,100)), (rmx, rmy))
         # for i in range(100):
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*250, rmy + math.cos(time.time()+i)*math.sin(time.time())*250))
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.sin(time.time())*250, rmy + math.cos(time.time()+i)*math.cos(time.time())*250))
