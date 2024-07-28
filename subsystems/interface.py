@@ -50,7 +50,7 @@ class Interface:
         self.imageSize = (1366,697)
         self.drawingImage = LOADING_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
         # self.drawingImage[:,:] = [255,255,255,255]
-        self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
+        self.sketchZoomMul = 1024/max(self.imageSize[0], self.imageSize[1])
         self.cameraPos = (0,0)
         self.sketchZoom = 100
 
@@ -168,12 +168,22 @@ class Interface:
         rmx = self.mx - 20
         rmy = self.my - 20
 
-        xCalc = lambda ix: round(ix*12800/self.sketchZoomMulScaled)
-        yCalc = lambda iy: round(iy*9400/self.sketchZoomMulScaled)
+        imageSY, imageSX, _ = self.drawingImage.shape
+        
+        pCalc = lambda p: round(p*100/self.sketchZoomMulScaled)
+        iCalc = lambda i: round(i*self.sketchZoomMulScaled/100)
+        if self.sketchZoomMulScaled < 100:
+            # The entire image is smaller than the screen
+            scaledDrawingImage = setSize(self.drawingImage, round(self.sketchZoomMulScaled))
+        else:
+            # The image is in one dimension or another larger than the screen
+            scaledDrawingImage = getRegion(self.drawingImage, (0,0), (pCalc(1024), pCalc(658)), 2)
+            scaledDrawingImage = resizeImage(scaledDrawingImage, (1024,658))
+
         for ix in range(0,8+1):
             for iy in range(0,7+1):
-                placeOver(img, resizeImage(getRegion(self.drawingImage, (xCalc(ix), yCalc(iy)), (xCalc(ix+1), yCalc(iy+1))), (128,94)), (ix*128, iy*94))
-                placeOver(img, displayText(f"region {(xCalc(ix),yCalc(iy))}", "s", colorBG=(0,0,0,150)), (ix*128, iy*94))
+                placeOver(img, setBrightness(getRegion(scaledDrawingImage, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), ix*10+iy), (ix*128, iy*94))
+                # placeOver(img, displayText(f"region {(pCalc(ix*128),iCalc(iy*94))}", "s", colorBG=(0,0,0,150)), (ix*128, iy*94))
 
         # for i in range(100):
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*250, rmy + math.cos(time.time()+i)*math.sin(time.time())*250))

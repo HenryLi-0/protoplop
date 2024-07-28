@@ -40,30 +40,32 @@ def addBlank(img:Image.Image|numpy.ndarray, add: int, direction: str):
     elif direction == 'W': return numpy.hstack((numpy.zeros((y, add, 4), dtype=img.dtype), img))
     else: return img
 
-def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|list):
+def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|list, exact = 2):
     '''Returns a region of an image, given two coordinates relative to (0,0) of the image'''
     imgC = img
     y, x, _ = img.shape
     pointA = [min(cornerA[0], cornerB[0]), min(cornerA[1], cornerB[1])]
     pointB = [max(cornerA[0], cornerB[0]), max(cornerA[1], cornerB[1])]
-    if pointA[0] < 0:
-        add = abs(pointA[0])
-        imgC = addBlank(imgC, add, "W")
-        pointA[0] += add 
-        pointB[0] += add
-    if pointA[1] < 0:
-        add = abs(pointA[1])
-        imgC = addBlank(imgC, add, "N")
-        pointA[1] += add 
-        pointB[1] += add
-    if x < pointB[0]:
-        add = abs(pointB[0]-x)
-        imgC = addBlank(imgC, add, "E")
-        pointB[0] += add
-    if y < pointB[1]:
-        add = abs(pointB[1]-y)
-        imgC = addBlank(imgC, add, "S")
-        pointB[1] += add
+    if exact > 0:
+        if pointA[0] < 0:
+            add = abs(pointA[0])
+            imgC = addBlank(imgC, add, "W")
+            pointA[0] += add 
+            pointB[0] += add
+        if pointA[1] < 0:
+            add = abs(pointA[1])
+            imgC = addBlank(imgC, add, "N")
+            pointA[1] += add 
+            pointB[1] += add
+        if exact > 1:
+            if x < pointB[0]:
+                add = abs(pointB[0]-x)
+                imgC = addBlank(imgC, add, "E")
+                pointB[0] += add
+            if y < pointB[1]:
+                add = abs(pointB[1]-y)
+                imgC = addBlank(imgC, add, "S")
+                pointB[1] += add
     area = imgC[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
     return area
 
