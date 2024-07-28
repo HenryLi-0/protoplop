@@ -47,9 +47,9 @@ class Interface:
         self.mouseScroll = 0 
 
 
-        self.imageSize = (512,512)
-        self.drawingImage = PLACEHOLDER_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
-        self.drawingImage[:,:] = [255,255,255,255]
+        self.imageSize = (1366,697)
+        self.drawingImage = LOADING_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
+        # self.drawingImage[:,:] = [255,255,255,255]
         self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
         self.cameraPos = (0,0)
         self.sketchZoom = 100
@@ -167,14 +167,21 @@ class Interface:
         img = im.copy()
         rmx = self.mx - 20
         rmy = self.my - 20
-        # placeOver(img, setSize(self.drawingImage, self.sketchZoomMulScaled), (0,0))
-        # for ix in range(0,8+1):
-        #     for iy in range(0,7+1):
-        #         # c.placeOver(getRegion(self.drawingImage, (round(ix*self.sketchZoomMulScaled), round(iy*self.sketchZoomMulScaled)), (round((ix+1)*self.sketchZoomMulScaled), round((iy+1)*self.sketchZoomMulScaled))), (ix*128,iy*94))
-        #         placeOver(img, displayText(f"region {(round(ix*12800/self.sketchZoomMulScaled), round(iy*9400/self.sketchZoomMulScaled))}", "s", colorBG=(0,0,0,255)), (ix*128, iy*94))
 
-        for i in range(100):
-            placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i/100)*50, rmy + math.cos(time.time()+i/100)*50))
+        xCalc = lambda ix: round(ix*12800/self.sketchZoomMulScaled)
+        yCalc = lambda iy: round(iy*9400/self.sketchZoomMulScaled)
+        for ix in range(0,8+1):
+            for iy in range(0,7+1):
+                placeOver(img, resizeImage(getRegion(self.drawingImage, (xCalc(ix), yCalc(iy)), (xCalc(ix+1), yCalc(iy+1))), (128,94)), (ix*128, iy*94))
+                placeOver(img, displayText(f"region {(xCalc(ix),yCalc(iy))}", "s", colorBG=(0,0,0,150)), (ix*128, iy*94))
+
+        # for i in range(100):
+        #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*250, rmy + math.cos(time.time()+i)*math.sin(time.time())*250))
+        #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.sin(time.time())*250, rmy + math.cos(time.time()+i)*math.cos(time.time())*250))
+        #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*500, rmy + math.cos(time.time()+i)*math.sin(time.time())*500))
+        #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.sin(time.time())*500, rmy + math.cos(time.time()+i)*math.cos(time.time())*500))
+        #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*100, rmy + math.cos(time.time()+i)*math.sin(time.time())*100))
+        #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.sin(time.time())*100, rmy + math.cos(time.time()+i)*math.cos(time.time())*100))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":

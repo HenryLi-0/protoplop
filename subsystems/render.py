@@ -56,6 +56,14 @@ def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|l
         imgC = addBlank(imgC, add, "N")
         pointA[1] += add 
         pointB[1] += add
+    if x < pointB[0]:
+        add = abs(pointB[0]-x)
+        imgC = addBlank(imgC, add, "E")
+        pointB[0] += add
+    if y < pointB[1]:
+        add = abs(pointB[1]-y)
+        imgC = addBlank(imgC, add, "S")
+        pointB[1] += add
     area = imgC[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
     return area
 
@@ -162,3 +170,7 @@ def setLimitedSizeSize(img: numpy.ndarray, size:tuple|list):
     scaleFactor = size[0]/x
     if size[1]/y < scaleFactor: scaleFactor = size[1]/y
     return numpy.array(Image.fromarray(img).resize((max(1, (round(x*scaleFactor))),max(1, round(y*scaleFactor))), Image.Resampling.NEAREST))
+
+def resizeImage(img: numpy.ndarray, size:tuple|list):
+    '''Returns the a copy of the image scaled to shape size'''
+    return numpy.array(Image.fromarray(img).resize(size, Image.Resampling.NEAREST))
