@@ -58,7 +58,7 @@ class Interface:
         self.drawingImage = LOADING_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
         # self.drawingImage[:,:] = [255,255,255,255]
         self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
-        self.cameraPos = (0,0)
+        self.cameraPos = (683,349)
         self.sketchZoom = 100
 
         self.updateSketch = True
@@ -83,13 +83,6 @@ class Interface:
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
         
-        self.pCalcX = lambda px: round((px*100/self.sketchZoomMulScaled)+self.cameraPos[0]) # mouse pos X -> image pixel pos X
-        self.pCalcY = lambda py: round((py*100/self.sketchZoomMulScaled)+self.cameraPos[1]) # mouse pos Y -> image pixel pos Y
-        self.pCalc  = lambda  p: round(  p*100/self.sketchZoomMulScaled                   ) # mouse pos   -> image pixel pos (ignores camera)
-        self.iCalcX = lambda ix: round((ix-self.cameraPos[0])*self.sketchZoomMulScaled/100) # image pixel pos X -> screen pos X
-        self.iCalcY = lambda iy: round((iy-self.cameraPos[1])*self.sketchZoomMulScaled/100) # image pixel pos Y -> screen pos Y
-        self.iCalc  = lambda  i: round(                     i*self.sketchZoomMulScaled/100)
-
         if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
             print("button press")
 
@@ -111,37 +104,24 @@ class Interface:
                 self.updateSketch = True
                 if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
-                    self.interactableVisualObjects[-997][1].data = [mx-20, my-20, self.sketchZoom, self.pCalcX(mx-20), self.pCalcY(my-20)]
+                    self.interactableVisualObjects[-997][1].data = (mx-20, my-20, self.sketchZoom)
+                    self.cameraPos = (self.calcScreenToZoomedX(mx-20), self.calcScreenToZoomedY(my-20))
                 else:
                     temp = self.interactableVisualObjects[-997][1].data
                     self.sketchZoom = temp[2] + ((mx-20 - temp[0]) + (my-20 - temp[1]))/10
-                    if self.sketchZoom < 1: 
-                        self.sketchZoom = 1
-                        self.interactableVisualObjects[-997][1].data = [mx-20, my-20, self.sketchZoom, temp[3], temp[4]]
-                    if self.sketchZoom > 10000: 
-                        self.sketchZoom = 10000
-                        self.interactableVisualObjects[-997][1].data = [mx-20, my-20, self.sketchZoom, temp[3], temp[4]]
-                    self.cameraPos = (self.pCalcX(self.iCalcX(temp[3])-512),self.pCalcY(self.iCalcY(temp[4])-329))
-                    self.consoleAlerts.append(f"{self.ticks} - [CENTER ZOOM - ({temp[3]}, {temp[4]})]")
+                    self.sketchZoom = max(1, min(self.sketchZoom, 10000))
 
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
         if abs(self.mouseScroll) > 0:
             if self.interacting == -999 and self.mouseInSketchSection:
                 self.interacting = -996
-                self.interactableVisualObjects[-996][1].data = (self.pCalcX(mx-20), self.pCalcY(my-20))
+                self.cameraPos = (self.calcScreenToZoomedX(mx-20), self.calcScreenToZoomedY(my-20))
             if self.interacting == -996 and self.mouseInSketchSection:
                 self.updateSketch = True
                 temp = self.interactableVisualObjects[-996][1].data
                 self.sketchZoom -= self.mouseScroll/10
-                if self.sketchZoom < 1: 
-                    self.sketchZoom = 1
-                    self.interactableVisualObjects[-996][1].data = [temp[0], temp[1]]
-                if self.sketchZoom > 10000: 
-                    self.sketchZoom = 10000
-                    self.interactableVisualObjects[-996][1].data = [temp[0], temp[1]]
-                self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
-                self.cameraPos = (self.pCalcX(self.iCalcX(temp[0])-512),self.pCalcY(self.iCalcY(temp[1])-329))
+                self.sketchZoom = max(1, min(self.sketchZoom, 10000))
 
         else:
             if self.interacting == -996: self.interacting = -999
@@ -156,7 +136,6 @@ class Interface:
         self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
 
         self.consoleAlerts.append(f"{self.ticks} - self.cameraPos: {self.cameraPos}")
-        self.consoleAlerts.append(f"{self.ticks} - mousePos: ({self.pCalcX(mx-20)}, {self.pCalcX(my-20)})")
 
         pass
 
@@ -220,20 +199,21 @@ class Interface:
 
         imageSY, imageSX, _ = self.drawingImage.shape
         
+        self.consoleAlerts.append(f"{time.time()} - processSketch() running")
         
-        if self.sketchZoomMulScaled < 100:
-            # The entire image is smaller than the screen
-            scaledDrawingImage = setSize(self.drawingImage, round(self.sketchZoomMulScaled))
-            scaledDrawingImage = getRegion(scaledDrawingImage, (self.iCalcX(2*self.cameraPos[0]),self.iCalcY(2*self.cameraPos[1])), (1024 + self.iCalcX(2*self.cameraPos[0]), 658 + self.iCalcY(2*self.cameraPos[1])))
-        else:
-            # The image is in one dimension or another larger than the screen
-            scaledDrawingImage = getRegion(self.drawingImage, (self.cameraPos[0],self.cameraPos[1]), (self.pCalcX(1024)+self.cameraPos[0], self.pCalcY(658)+self.cameraPos[1]), 2)
-            scaledDrawingImage = resizeImage(scaledDrawingImage, (1024,658))
+        # if self.sketchZoomMulScaled < 100:
+        #     # The entire image is smaller than the screen
+        #     scaledDrawingImage = setSize(self.drawingImage, round(self.sketchZoomMulScaled))
+        #     scaledDrawingImage = getRegion(scaledDrawingImage, (self.iCalcX(1.5*self.cameraPos[0]),self.iCalcY(1.5*self.cameraPos[1])), (1024 + self.iCalcX(1.5*self.cameraPos[0]), 658 + self.iCalcY(1.5*self.cameraPos[1])))
+        # else:
+        #     # The image is in one dimension or another larger than the screen
+        scaledDrawingImage = setSize(self.drawingImage, (self.sketchZoom))
+        scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512, self.cameraPos[1]*(self.sketchZoom/100) - 329), (self.cameraPos[0]*(self.sketchZoom/100) + 512, self.cameraPos[1]*(self.sketchZoom/100) + 329), 2)
 
         for ix in range(0,8+1):
             for iy in range(0,7+1):
                 placeOver(img, setBrightness(getRegion(scaledDrawingImage, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix+iy)%2*50), (ix*128, iy*94))
-        placeOver(img, displayText(f"imX: {self.pCalcX(rmx)} imY: {self.pCalcY(rmy)}", "m", (0,0,0,100)), (rmx, rmy))
+        placeOver(img, displayText(f"imX: {self.calcScreenToZoomedX(rmx)} imY: {self.calcScreenToZoomedY(rmy)}", "m", (0,0,0,100)), (rmx, rmy))
         # for i in range(100):
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*250, rmy + math.cos(time.time()+i)*math.sin(time.time())*250))
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.sin(time.time())*250, rmy + math.cos(time.time()+i)*math.cos(time.time())*250))
@@ -296,6 +276,12 @@ class Interface:
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
 
         return arrayToImage(img)
+    
+    
+    def calcScreenToZoomedX(self, x): return x - 512 + (self.cameraPos[0] * self.sketchZoom/100)
+    def calcScreenToZoomedY(self, y): return y - 329 + (self.cameraPos[1] * self.sketchZoom/100)
+    def calcZoomedToScreenX(self, x): return x - (self.cameraPos[0] * self.sketchZoom/100) + 512
+    def calcZoomedToScreenY(self, y): return y - (self.cameraPos[1] * self.sketchZoom/100) + 329
 
     def saveState(self):
         pass

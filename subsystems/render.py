@@ -44,8 +44,8 @@ def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|l
     '''Returns a region of an image, given two coordinates relative to (0,0) of the image'''
     imgC = img
     y, x, _ = img.shape
-    pointA = [min(cornerA[0], cornerB[0]), min(cornerA[1], cornerB[1])]
-    pointB = [max(cornerA[0], cornerB[0]), max(cornerA[1], cornerB[1])]
+    pointA = [round(min(cornerA[0], cornerB[0])), round(min(cornerA[1], cornerB[1]))]
+    pointB = [round(max(cornerA[0], cornerB[0])), round(max(cornerA[1], cornerB[1]))]
     if exact > 0:
         if pointA[0] < 0:
             add = abs(pointA[0])
