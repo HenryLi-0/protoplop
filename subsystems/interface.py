@@ -7,7 +7,7 @@ import time, random, ast, cv2
 from subsystems.render import *
 from subsystems.fancy import *
 from subsystems.simplefancy import *
-from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, PointVisualObject
+from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
 from subsystems.canvas import LabelWrapper
@@ -37,7 +37,10 @@ class Interface:
             -999 : [" ", DummyVisualObject("dummy", (0,0))], # used for not interacting with anything
             -998 : [" ", DummyVisualObject("dummy", (0,0))], # used for text boxes
             -997 : [" ", DummyVisualObject("dummy", (0,0))], # to be used by keybinds
+            -996 : [" ", DummyVisualObject("dummy", (0,0))], # to be used by scrolling
 
+            -99 : ["t", IconVisualObject("Move", ICON_SPACING(0,0), ICON_MOVE_ARRAY, (38,38))],
+            -98 : ["t", IconVisualObject("Move", ICON_SPACING(0,1), LOAD_ICON_ARRAY, (38,38))],
             # self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
         }
         #for i in range(10): self.interactableVisualObjects[self.c.c()] = ["a", OrbVisualObject(f"test{i}")]
@@ -50,8 +53,8 @@ class Interface:
         self.imageSize = (1366,697)
         self.drawingImage = LOADING_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
         # self.drawingImage[:,:] = [255,255,255,255]
-        self.sketchZoomMul = 1024/max(self.imageSize[0], self.imageSize[1])
-        self.cameraPos = (-500,-250)
+        self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
+        self.cameraPos = (0,0)
         self.sketchZoom = 100
 
         self.updateSketch = True
@@ -101,7 +104,7 @@ class Interface:
                 self.updateSketch = True
                 if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
-                    self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom, self.pCalcX(512), self.pCalcY(329)]
+                    self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom, self.pCalcX(mx-20), self.pCalcY(my-20)]
                 else:
                     temp = self.interactableVisualObjects[-997][1].data
                     self.sketchZoom = temp[2] + ((mx - temp[0]) + (my - temp[1]))/10
@@ -113,19 +116,30 @@ class Interface:
                         self.interactableVisualObjects[-997][1].data = [mx, my, self.sketchZoom, temp[3], temp[4]]
                     self.cameraPos = (self.pCalcX(self.iCalcX(temp[3])-512),self.pCalcY(self.iCalcY(temp[4])-329))
 
-
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
         if abs(self.mouseScroll) > 0:
-            if self.mouseInSketchSection:
-                temp = (self.pCalcX(512), self.pCalcY(329))
+            if self.interacting == -999 and self.mouseInSketchSection:
+                self.interacting = -996
+                self.interactableVisualObjects[-996][1].data = (self.pCalcX(512), self.pCalcY(329))
+            if self.interacting == -996 and self.mouseInSketchSection:
                 self.updateSketch = True
+                temp = self.interactableVisualObjects[-996][1].data
                 self.sketchZoom -= self.mouseScroll/10
                 if self.sketchZoom < 1: self.sketchZoom = 1
                 if self.sketchZoom > 10000: self.sketchZoom = 10000
                 self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
-                self.cameraPos = self.pCalcX(self.iCalcX(temp[0])-512),self.pCalcY(self.iCalcY(temp[1])-329)
-                print(self.cameraPos)
+                self.cameraPos = (self.pCalcX(self.iCalcX(temp[0])-512),self.pCalcY(self.iCalcY(temp[1])-329))
+
+        else:
+            if self.interacting == -996: self.interacting = -999
+        # if abs(self.mouseScroll) > 0:
+        #     self.sketchZoom -= self.mouseScroll/10
+        #     if self.sketchZoom < 1: self.sketchZoom = 1
+        #     if self.sketchZoom > 10000: self.sketchZoom = 10000
+        #     self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
+        #     self.updateSketch = True
+            
 
         self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
 
@@ -201,9 +215,9 @@ class Interface:
 
         for ix in range(0,8+1):
             for iy in range(0,7+1):
-                placeOver(img, setBrightness(getRegion(scaledDrawingImage, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), ix*10+iy), (ix*128, iy*94))
-        
-        placeOver(img, displayText(f"imX: {self.pCalcX(rmx)} imY: {self.pCalcY(rmy)}", "s", (0,0,0,100)), (rmx, rmy))
+                placeOver(img, setBrightness(getRegion(scaledDrawingImage, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix+iy)%2*50), (ix*128, iy*94))
+        placeOver(img, displayText(f"{(self.pCalcX(self.iCalcX(512)-512),self.pCalcY(self.iCalcY(329)-329))}", "m", (0,0,0,100)), (0,0))
+        placeOver(img, displayText(f"imX: {self.pCalcX(rmx)} imY: {self.pCalcY(rmy)}", "m", (0,0,0,100)), (rmx, rmy))
         # for i in range(100):
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.cos(time.time())*250, rmy + math.cos(time.time()+i)*math.sin(time.time())*250))
         #     placeOver(img, PLACEHOLDER_IMAGE_5_ARRAY, (rmx + math.sin(time.time()+i)*math.sin(time.time())*250, rmy + math.cos(time.time()+i)*math.cos(time.time())*250))
@@ -226,7 +240,7 @@ class Interface:
     def processTools(self, im):
         '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
         img = im.copy()
-        placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
+        
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
@@ -238,6 +252,7 @@ class Interface:
     def processColors(self, im):
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
         img = im.copy()
+        placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,0))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "c":

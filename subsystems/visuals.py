@@ -2,7 +2,7 @@
 
 import time, numpy, random, math
 from subsystems.render import placeOver
-from subsystems.fancy import displayText, generateColorBox, generateBorderBox
+from subsystems.fancy import *
 from subsystems.point import *
 from settings import *
 
@@ -130,6 +130,26 @@ class ButtonVisualObject:
         self.img = img
         self.img2 = img2
         self.positionO = RectangularPositionalBox((img.shape[1],img.shape[0]), pos[0], pos[1])
+    def tick(self, img, active):
+        placeOver(img, self.img2 if active else self.img, self.positionO.getPosition(), False)
+    def updatePos(self, rmx, rmy):
+        pass
+    def keepInFrame(self, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
+            self.positionO.setPosition((max(0,min(pos[0],maxX)), max(0,min(pos[1],maxY))))
+    def getInteractable(self,rmx,rmy):
+        return self.positionO.getInteract(rmx, rmy)
+    
+class IconVisualObject:
+    '''An icon, basically a fancy button.'''
+    # generateIcon(img, active = False, size = (29,29), color = "")
+    def __init__(self, name, pos:tuple|list, icon:numpy.ndarray, size:tuple|list = (29,29)):
+        self.type = "button"
+        self.name = name
+        self.img = generateIcon(icon, False, size)
+        self.img2 = generateIcon(icon, True, size)
+        self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
     def tick(self, img, active):
         placeOver(img, self.img2 if active else self.img, self.positionO.getPosition(), False)
     def updatePos(self, rmx, rmy):

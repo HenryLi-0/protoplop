@@ -47,6 +47,8 @@ from subsystems.simplefancy import *
 # Version
 VERSION = "v0.0.0-really really early in development"
 
+ICON_SPACING = lambda x,y: (6+43*x, 6+43*y)
+
 # Imagery
 LOADING_IMAGE = Image.open(os.path.join("resources", "loading.png")).convert("RGBA") # 1366x697, Solid, Loading Screen
 LOADING_IMAGE_ARRAY = numpy.array(LOADING_IMAGE)
@@ -115,3 +117,6 @@ SAVE_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "save.png")).
 LOAD_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "load.png")).convert("RGBA"))
 RENDER_GIF_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "render_gif.png")).convert("RGBA"))
 RENDER_MP4_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "render_mp4.png")).convert("RGBA"))
+
+
+ICON_MOVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "move.png")).convert("RGBA"))
