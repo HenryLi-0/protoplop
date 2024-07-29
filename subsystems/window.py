@@ -5,7 +5,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import time, math
 from subsystems.interface import Interface
-from subsystems.canvas import LabelWrapper
+from subsystems.label import LabelWrapper
 from settings import *
 
 class Window:

@@ -145,13 +145,14 @@ class IconVisualObject:
     '''An icon, basically a fancy button.'''
     # generateIcon(img, active = False, size = (29,29), color = "")
     def __init__(self, name, pos:tuple|list, icon:numpy.ndarray, size:tuple|list = (29,29)):
-        self.type = "button"
+        self.type = "icon"
         self.name = name
         self.img = generateIcon(icon, False, size)
         self.img2 = generateIcon(icon, True, size)
         self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
     def tick(self, img, active):
         placeOver(img, self.img2 if active else self.img, self.positionO.getPosition(), False)
+        if active: placeOver(img, displayText(self.name, "s", (0,0,0,200)), self.positionO.getPosition(), False)
     def updatePos(self, rmx, rmy):
         pass
     def keepInFrame(self, maxX, maxY):

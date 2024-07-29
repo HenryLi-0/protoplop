@@ -118,5 +118,10 @@ LOAD_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "load.png")).
 RENDER_GIF_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "render_gif.png")).convert("RGBA"))
 RENDER_MP4_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "render_mp4.png")).convert("RGBA"))
 
-
+ICON_NONE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "none.png")).convert("RGBA"))
 ICON_MOVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "move.png")).convert("RGBA"))
+ICON_BRUSH_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "paintbrush.png")).convert("RGBA"))
+ICON_PENCIL_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "pencil.png")).convert("RGBA"))
+ICON_ERASER_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eraser.png")).convert("RGBA"))
+ICON_BUCKET_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "bucket.png")).convert("RGBA"))
+ICON_EYEDROP_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eyedrop.png")).convert("RGBA"))
