@@ -6,10 +6,7 @@ import numpy, random, colorsys
 def generateColorBox(size:list|tuple = (25,25),color:list|tuple = (255,255,255,255)):
     '''Generates a box of (size) size of (color) color'''
     array = numpy.empty((size[1], size[0], 4), dtype=numpy.uint8)
-    array[:, :, 0] = color[0]
-    array[:, :, 1] = color[1]
-    array[:, :, 2] = color[2]
-    array[:, :, 3] = color[3]
+    array[:, :] = color
     return array
 
 def generateBorderBox(size:list|tuple = (25,25), outlineW:int = 1, color:list|tuple = (255,255,255,255)):

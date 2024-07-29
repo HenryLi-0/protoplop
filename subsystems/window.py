@@ -50,6 +50,9 @@ class Window:
         self.interface.tick(mx,my,self.mPressed, self.fps, self.keysPressed, self.mouseScroll)
         self.mouseScroll = 0
         
+        if self.interface.updateSketchLayers:
+            self.interface.processSketchLayers()
+            self.interface.updateSketchLayers = False
         if self.interface.updateSketch: 
             self.w_sketch.update(self.interface.processSketch(self.b_sketch))
             self.interface.updateSketch = False
