@@ -58,7 +58,7 @@ class Interface:
         self.drawingImage = LOADING_IMAGE_ARRAY #numpy.empty((self.imageSize[1], self.imageSize[0], 4), dtype=numpy.uint8)
         # self.drawingImage[:,:] = [255,255,255,255]
         self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
-        self.cameraPos = (683,349)
+        self.cameraPos = (683,349) # Refers to the center of focus relative to the origin of the unscaled/unzoomed/original image
         self.sketchZoom = 100
 
         self.updateSketch = True
@@ -105,7 +105,7 @@ class Interface:
                 if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
                     self.interactableVisualObjects[-997][1].data = (mx-20, my-20, self.sketchZoom)
-                    self.cameraPos = (self.calcScreenToZoomedX(mx-20), self.calcScreenToZoomedY(my-20))
+                    # self.cameraPos = (self.calcScreenToZoomedX(mx-20), self.calcScreenToZoomedY(my-20))
                 else:
                     temp = self.interactableVisualObjects[-997][1].data
                     self.sketchZoom = temp[2] + ((mx-20 - temp[0]) + (my-20 - temp[1]))/10
@@ -201,14 +201,14 @@ class Interface:
         
         self.consoleAlerts.append(f"{time.time()} - processSketch() running")
         
-        # if self.sketchZoomMulScaled < 100:
-        #     # The entire image is smaller than the screen
-        #     scaledDrawingImage = setSize(self.drawingImage, round(self.sketchZoomMulScaled))
-        #     scaledDrawingImage = getRegion(scaledDrawingImage, (self.iCalcX(1.5*self.cameraPos[0]),self.iCalcY(1.5*self.cameraPos[1])), (1024 + self.iCalcX(1.5*self.cameraPos[0]), 658 + self.iCalcY(1.5*self.cameraPos[1])))
-        # else:
-        #     # The image is in one dimension or another larger than the screen
-        scaledDrawingImage = setSize(self.drawingImage, (self.sketchZoom))
-        scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512, self.cameraPos[1]*(self.sketchZoom/100) - 329), (self.cameraPos[0]*(self.sketchZoom/100) + 512, self.cameraPos[1]*(self.sketchZoom/100) + 329), 2)
+        if self.sketchZoom < 100:
+            # The entire image is smaller than the screen
+            scaledDrawingImage = setSize(self.drawingImage, (self.sketchZoom))
+            scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512, self.cameraPos[1]*(self.sketchZoom/100) - 329), (self.cameraPos[0]*(self.sketchZoom/100) + 512, self.cameraPos[1]*(self.sketchZoom/100) + 329), 2)
+        else:
+            # The image is in one dimension or another larger than the screen
+            scaledDrawingImage = getRegion(self.drawingImage, (self.cameraPos[0] - 512*(100/self.sketchZoom),self.cameraPos[1] - 329*(100/self.sketchZoom)), (self.cameraPos[0] + 512*(100/self.sketchZoom),self.cameraPos[1] + 329*(100/self.sketchZoom)))
+            scaledDrawingImage = setSizeSize(scaledDrawingImage, (1024, 658))
 
         for ix in range(0,8+1):
             for iy in range(0,7+1):
