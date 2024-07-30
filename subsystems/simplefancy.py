@@ -43,3 +43,19 @@ def genereateThemedBorderRectangleInstructions(size:list|tuple = (25,25),borderC
     instructions.append([row, (0,size[1]-3)])
     instructions.append([col, (size[0]-3,0)])
     return instructions
+
+
+def generatePaintBrush(size, color, strength):
+    '''Generates a circle paint brush with given size (radius), color (RGBA), and strength (0-100, 100 is solid)'''
+    diameter = size * 2
+    array = numpy.empty((diameter, diameter, 4), dtype=numpy.uint8)
+    alpha = int((strength / 100) * 255)
+    center = size
+    for y in range(diameter):
+        for x in range(diameter):
+            distance = numpy.sqrt((x-center)**2+(y-center)**2)
+            if distance <= size:
+                array[y,x] = [color[0], color[1], color[2], min(int(alpha * (1 - (distance / size))), 255)]
+            else:
+                array[y,x] = (0,0,0,0)
+    return array

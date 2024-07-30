@@ -60,6 +60,7 @@ class Window:
             self.w_sketch.update(arrayToImage(self.interface.processSketch(self.b_sketch)))
             self.interface.updateSketch = False
 
+        '''OPTIMIZE, CONSTANT SKETCH SCREEN UPDATES ARE NOT NECCESARY!'''
         temp = self.interface.processPopUp(self.b_tools)
         if type(temp) == numpy.ndarray:
             placeOver(self.i_sketch_overlay, temp, (736,0))

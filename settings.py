@@ -26,6 +26,8 @@ SELECTED_COLOR   = "#bebcd5" #Selected Element color
 VOID_COLOR       = "#84829b" #Void color
 
 hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
+RGBAToHexColor = lambda rgba: 0 
+'''please write that ^^^'''
 
 '''Saving'''
 import os, time

@@ -21,10 +21,6 @@ class Interface:
         self.fps = 0
         self.ticks = 0
         self.c = Counter()
-        '''Generate Icons'''
-        # i_plusIconIdle = generateIcon(PLUS_SIGN_ARRAY, False, (29,29))
-        # i_plusIconActive = generateIcon(PLUS_SIGN_ARRAY, True, (29,29))
-
         '''Interactable Visual Objects'''
         '''
         Code:
@@ -32,12 +28,14 @@ class Interface:
         t - tools
         c - colors
         l - layers
+        p - pop up
         '''
         self.interactableVisualObjects = {
             -999 : [" ", DummyVisualObject("dummy", (0,0))], # used for not interacting with anything
             -998 : [" ", DummyVisualObject("dummy", (0,0))], # used for text boxes
-            -997 : [" ", DummyVisualObject("dummy", (0,0))], # to be used by keybinds
-            -996 : [" ", DummyVisualObject("dummy", (0,0))], # to be used by scrolling
+            -997 : [" ", DummyVisualObject("dummy", (0,0))], # used by keybinds
+            -996 : [" ", DummyVisualObject("dummy", (0,0))], # used by scrolling
+            -995 : [" ", DummyVisualObject("dummy", (0,0))], # used when drawing
 
             -99 : ["t", IconVisualObject(        "None", ICON_SPACING(0,0),    ICON_NONE_ARRAY, (33,33))],
             -98 : ["t", IconVisualObject(        "Move", ICON_SPACING(0,1),    ICON_MOVE_ARRAY, (33,33))],
@@ -46,27 +44,25 @@ class Interface:
             -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
-
-            # self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
         }
-        #for i in range(10): self.interactableVisualObjects[self.c.c()] = ["a", OrbVisualObject(f"test{i}")]
-
+        '''Control'''
         self.interacting = -999
         self.stringKeyQueue = ""
         self.mouseScroll = 0 
         self.consoleAlerts = []
-        
+        '''Tools and Sliders'''
         self.selectedTool = -99
         self.previousSelectedTool = self.selectedTool
         self.sliders = []
-
+        self.slidersData = []
+        '''Image and Camera'''
         self.imageSize = (1366,697)
         self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
         self.cameraPos = (683,349) # Refers to the center of focus relative to the origin of the unscaled/unzoomed/original image
         self.sketchZoom = 100
         self.updateSketch = True
         self.updateSketchLayers = True
-        
+        '''Layers'''
         self.drawingImage = LOADING_IMAGE_ARRAY 
         self.blankLayer = generateColorBox((self.imageSize[0], self.imageSize[1]), (0,0,0,0))
         self.blankProcessingLayer = setSize(self.blankLayer, 100/SKETCH_QUALITY)
@@ -80,6 +76,11 @@ class Interface:
         self.l_currentLayer = self.blankLayer.copy()
         self.l_aboveLayer   = self.blankLayer.copy()
         self.l_total        = self.blankLayer.copy()
+        '''Drawing and Brushes'''
+        self.drawingToolIDs = [-97, -96, -95]
+        self.drawing = False
+        self.brush = None
+        self.brushColor = [255,127,0,255]
 
         pass
 
@@ -93,7 +94,8 @@ class Interface:
         self.deltaTicks = 1 if self.fps==0 else round(INTERFACE_FPS/self.fps)
         self.ticks += self.deltaTicks
         
-        self.mouseInSketchSection =   20 <= self.mx and self.mx <= 1043 and   20 <= self.my and self.my <=  677
+        self.mouseInPopUpSection  =  756 <= self.mx and self.mx <= 1043 and   20 <= self.my and self.my <=  198
+        self.mouseInSketchSection =   20 <= self.mx and self.mx <= 1043 and   20 <= self.my and self.my <=  677 and (not(self.mouseInPopUpSection))
         self.mouseInToolsSection  = 1057 <= self.mx and self.mx <= 1344 and   20 <= self.my and self.my <=  198
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
@@ -130,6 +132,8 @@ class Interface:
                 self.updateSketch = True
                 self.updateSketchLayers = True
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
+
+        self.processDrawing()
 
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
@@ -275,9 +279,28 @@ class Interface:
                 placeOver(self.l_aboveLayer, scaledDrawingImage, (0,0))
             placeOver(self.l_total, scaledDrawingImage, (0,0))
 
+    def processDrawing(self):
+        rmx = self.mx-20
+        rmy = self.my-20
+        if (self.interacting == -999 or self.interacting == -995) and (self.selectedTool in self.drawingToolIDs) and (self.mouseInSketchSection) and (self.mRising):
+            self.interacting = -995
+            self.drawing = True
+        if self.interacting == -995 and not(self.mPressed):
+            self.interacting = -999
+            self.drawing = False
+        if self.interacting == -995:
+            placeOver(self.layers[self.selectedLayer], self.brush, (self.calcScreenToNonZoomedX(rmx), self.calcScreenToNonZoomedY(rmy)), True)
+            self.updateSketchLayers = True
+            self.updateSketch = True
+
+        if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
+            # Color Picking
+            self.brushColor = self.l_total[round(rmy*1/SKETCH_QUALITY), round(rmx*1/SKETCH_QUALITY)]
+
+
     def processPopUp(self, im):
         '''Tools Area: `(756,20) to (1043,198)`: size `(288,179)`'''
-        if self.selectedTool in [-97, -96, -95]:
+        if self.selectedTool in self.drawingToolIDs:
             img = im.copy()
             if self.previousSelectedTool != self.selectedTool:
                 self.previousSelectedTool = self.selectedTool
@@ -290,7 +313,7 @@ class Interface:
                 if self.selectedTool == -97: # Paint Brush
                     self.sliders = [self.c.c(), self.c.c()]
                     self.interactableVisualObjects[self.sliders[0]] = ["p", SliderVisualObject("Size", (20,55), 248,100)]
-                    self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Wet", (20,105), 248,100)]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Strength", (20,105), 248,100)]
                 if self.selectedTool == -96: # Pencil
                     pass
                 if self.selectedTool == -95: # Eraser
@@ -299,7 +322,14 @@ class Interface:
                 if self.selectedTool == -97: # Paint Brush
                     placeOver(img, displayText(f"Paint Brush:", "m"), (10,10))
                     placeOver(img, displayText(f"Size: {self.interactableVisualObjects[self.sliders[0]][1].getData()}", "sm"), (10, 35))
-                    placeOver(img, displayText(f"Wet idk: {self.interactableVisualObjects[self.sliders[1]][1].getData()}", "sm"), (10, 85))
+                    placeOver(img, displayText(f"Strength: {self.interactableVisualObjects[self.sliders[1]][1].getData()}", "sm"), (10, 85))
+                    if self.interacting == -999:
+                        temp = [self.interactableVisualObjects[self.sliders[0]][1].getData(), self.interactableVisualObjects[self.sliders[1]][1].getData()]
+                        if self.slidersData != temp:
+                            self.brush = generatePaintBrush(temp[0], self.brushColor, temp[1])
+                            self.slidersData = temp
+                            self.consoleAlerts.append(f"{self.ticks} - generated a brush!")
+                    
                 if self.selectedTool == -96: # Pencil
                     pass
                 if self.selectedTool == -95: # Eraser
