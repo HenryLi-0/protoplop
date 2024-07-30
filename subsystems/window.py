@@ -6,6 +6,7 @@ from PIL import ImageTk, Image
 import time, math
 from subsystems.interface import Interface
 from subsystems.label import LabelWrapper
+from subsystems.render import placeOver, arrayToImage
 from settings import *
 
 class Window:
@@ -54,11 +55,20 @@ class Window:
             self.interface.processSketchLayers()
             self.interface.updateSketchLayers = False
         if self.interface.updateSketch: 
-            self.w_sketch.update(self.interface.processSketch(self.b_sketch))
+            self.i_sketch = self.interface.processSketch(self.b_sketch)
+            self.i_sketch_overlay = self.i_sketch.copy()
+            self.w_sketch.update(arrayToImage(self.interface.processSketch(self.b_sketch)))
             self.interface.updateSketch = False
-        self.w_tools .update(self.interface.processTools (self.b_tools ))
-        self.w_colors.update(self.interface.processColors(self.b_colors))
-        self.w_layers.update(self.interface.processLayers(self.b_layers))
+
+        temp = self.interface.processPopUp(self.b_tools)
+        if type(temp) == numpy.ndarray:
+            placeOver(self.i_sketch_overlay, temp, (736,0))
+            self.w_sketch.update(arrayToImage(self.i_sketch_overlay))
+        else:
+            self.w_sketch.update(arrayToImage(self.i_sketch))
+        self.w_tools .update(arrayToImage(self.interface.processTools (self.b_tools )))
+        self.w_colors.update(arrayToImage(self.interface.processColors(self.b_colors)))
+        self.w_layers.update(arrayToImage(self.interface.processLayers(self.b_layers)))
 
         self.fpsCounter +=1
         if math.floor(time.time()) == round(time.time()) and not(self.fpsGood):

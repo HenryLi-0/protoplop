@@ -7,7 +7,7 @@ import time, random, ast, cv2
 from subsystems.render import *
 from subsystems.fancy import *
 from subsystems.simplefancy import *
-from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject
+from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject, SliderVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
 from subsystems.label import LabelWrapper
@@ -46,6 +46,8 @@ class Interface:
             -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
+            
+            1: ["t", SliderVisualObject("goofy ahh", (120,20),80,10)]
             # self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
         }
         #for i in range(10): self.interactableVisualObjects[self.c.c()] = ["a", OrbVisualObject(f"test{i}")]
@@ -114,6 +116,7 @@ class Interface:
             if KB_ZOOM(keyQueue) and self.mPressed:
                 '''ZOOM: CTRL + SPACE + MOUSE_MOVEMENT'''
                 self.updateSketch = True
+                self.updateSketchLayers = True
                 if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
                     self.interactableVisualObjects[-997][1].data = (mx-20, my-20, self.sketchZoom)
@@ -126,9 +129,6 @@ class Interface:
                 self.updateSketch = True
                 self.updateSketchLayers = True
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
-            if "A" in keyQueue:
-                Image.fromarray(self.l_currentLayer).show()
-            
 
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
@@ -240,7 +240,7 @@ class Interface:
                 tempPath.append(self.interactableVisualObjects[id][1].positionO.getPosition())
 
         img = setSizeSizeBlur(img, (1024, 658))
-        return arrayToImage(img)
+        return img
     
     def processSketchLayers(self):
         self.selectedLayer = max(1,min(self.selectedLayer,len(self.layers)-2))
@@ -267,6 +267,15 @@ class Interface:
                 placeOver(self.l_aboveLayer, scaledDrawingImage, (0,0))
             placeOver(self.l_total, scaledDrawingImage, (0,0))
 
+    def processPopUp(self, im):
+        '''Tools Area: `(756,20) to (1043,198)`: size `(288,179)`'''
+        if self.selectedTool in [-97]:
+            img = im.copy()
+
+            return img
+        else:
+            return "no"
+
     
     def processTools(self, im):
         '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
@@ -277,7 +286,7 @@ class Interface:
             if self.interactableVisualObjects[id][0] == "t":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id or self.selectedTool==id)
 
-        return arrayToImage(img)
+        return img
 
     
     def processColors(self, im):
@@ -293,7 +302,7 @@ class Interface:
         for i in range(len(self.consoleAlerts)):
             placeOver(img, displayText(f"{self.consoleAlerts[i]}", "s"), (5,i*10))
 
-        return arrayToImage(img)
+        return img
 
     def processLayers(self, im):
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
@@ -310,7 +319,7 @@ class Interface:
             if self.interactableVisualObjects[id][0] == "l":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
 
-        return arrayToImage(img)
+        return img
     
     
     def calcScreenToZoomedX(self, x): return x - 512 + (self.cameraPos[0] * self.sketchZoom/100)

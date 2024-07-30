@@ -230,3 +230,31 @@ class PointVisualObject:
             self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
+
+class SliderVisualObject:
+    '''A slider!!! No way!!! ??? x 20'''
+    def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), length = random.randrange(50,100), displayScalar = 1):
+        self.type = "slider"
+        self.name = name
+        self.originalPos = pos
+        self.length = length
+        self.positionO = CircularPositionalBox(15)
+        self.positionO.setPosition(addP(pos, (10,10)))
+        self.displayScalar = displayScalar
+        self.bar = generateColorBox((length, 20), (0,0,0,0))
+        placeOver(self.bar, generateColorBox((length, 6), hexColorToRGBA(FRAME_COLOR)), (0,7))
+        placeOver(self.bar, generateColorBox((6, 20), hexColorToRGBA(FRAME_COLOR)), (0,0))
+        placeOver(self.bar, generateColorBox((6, 20), hexColorToRGBA(FRAME_COLOR)), (length-6,0))
+    def tick(self, img, active):
+        placeOver(img, self.bar, self.originalPos)
+        placeOver(img, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, self.positionO.getPosition(), False)
+        if active: 
+            placeOver(img, displayText(str(round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar)), "m"), addP(self.positionO.getPosition(), (10,15)), True)
+    def updatePos(self, rmx, rmy):
+        self.positionO.setX(max(self.originalPos[0] - 10, min(rmx, self.originalPos[0] + self.length - 10)))
+    def keepInFrame(self, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
+            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+    def getInteractable(self, rmx, rmy):
+        return self.positionO.getInteract(rmx, rmy)
