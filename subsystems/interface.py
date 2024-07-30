@@ -65,7 +65,8 @@ class Interface:
         self.updateSketchLayers = True
         
         self.drawingImage = LOADING_IMAGE_ARRAY 
-        self.blankLayer = generateColorBox((self.imageSize[1], self.imageSize[0]), (0,0,0,0))
+        self.blankLayer = generateColorBox((self.imageSize[0], self.imageSize[1]), (0,0,0,0))
+        self.blankProcessingLayer = setSize(self.blankLayer, 100/SKETCH_QUALITY)
         self.layers = [
             self.blankLayer.copy(),
             LOADING_IMAGE_ARRAY, 
@@ -124,7 +125,7 @@ class Interface:
                 '''FOCUS: CTRL + F + Click'''
                 self.updateSketch = True
                 self.updateSketchLayers = True
-                self.cameraPos = (self.calcScreenToZoomedX(mx-20), self.calcScreenToZoomedY(my-20))
+                self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
             if "A" in keyQueue:
                 Image.fromarray(self.l_currentLayer).show()
             
@@ -214,15 +215,20 @@ class Interface:
         img = im.copy()
         rmx = self.mx - 20
         rmy = self.my - 20
+
+        img = setSize(im.copy(), 100/SKETCH_QUALITY)
         
         self.consoleAlerts.append(f"{time.time()} - processSketch() running")
         
-        for ix in range(0,8+1):
-            for iy in range(0,7+1):
-                # placeOver(img, getRegion(self.l_belowLayer  , (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
-                placeOver(img, getRegion(self.l_currentLayer, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
-                # placeOver(img, getRegion(self.l_aboveLayer  , (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
-        placeOver(img, displayText(f"imX: {self.calcScreenToZoomedX(rmx)} imY: {self.calcScreenToZoomedY(rmy)}", "m", (0,0,0,100)), (rmx, rmy))
+        # for ix in range(0,8+1):
+        #     for iy in range(0,7+1):
+        #         placeOver(img, getRegion(self.l_belowLayer  , (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
+        #         placeOver(img, getRegion(self.l_currentLayer, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
+        #         placeOver(img, getRegion(self.l_aboveLayer  , (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
+
+        placeOver(img, self.l_belowLayer,   (0,0))
+        placeOver(img, self.l_currentLayer, (0,0))
+        placeOver(img, self.l_aboveLayer,   (0,0))
         
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":
@@ -233,22 +239,24 @@ class Interface:
             if self.interactableVisualObjects[id][1].type == "orb": 
                 tempPath.append(self.interactableVisualObjects[id][1].positionO.getPosition())
 
+        img = setSizeSizeBlur(img, (1024, 658))
         return arrayToImage(img)
     
     def processSketchLayers(self):
         self.selectedLayer = max(1,min(self.selectedLayer,len(self.layers)-2))
-        self.l_currentLayer = self.blankLayer.copy()
-        self.l_belowLayer = self.blankLayer.copy()
-        self.l_aboveLayer = self.blankLayer.copy()
-        self.l_total = self.blankLayer.copy()
+        self.l_currentLayer = self.blankProcessingLayer.copy()
+        self.l_belowLayer = self.blankProcessingLayer.copy()
+        self.l_aboveLayer = self.blankProcessingLayer.copy()
+        self.l_total = self.blankProcessingLayer.copy()
 
         for index in range(0, len(self.layers)):
             if self.sketchZoom < 100: # The entire image is smaller than the screen
                 scaledDrawingImage = setSize(self.layers[index], (self.sketchZoom))
                 scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512, self.cameraPos[1]*(self.sketchZoom/100) - 329), (self.cameraPos[0]*(self.sketchZoom/100) + 512, self.cameraPos[1]*(self.sketchZoom/100) + 329), 2)
+                if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
             else: # The image is in one dimension or another larger than the screen
                 scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] - 512*(100/self.sketchZoom),self.cameraPos[1] - 329*(100/self.sketchZoom)), (self.cameraPos[0] + 512*(100/self.sketchZoom),self.cameraPos[1] + 329*(100/self.sketchZoom)))
-                scaledDrawingImage = setSizeSize(scaledDrawingImage, (1024, 658))
+                scaledDrawingImage = setSizeSize(scaledDrawingImage, (round(1024*1/SKETCH_QUALITY), round(658*1/SKETCH_QUALITY)))
             if index < self.selectedLayer:
                 placeOver(self.l_belowLayer, scaledDrawingImage, (0,0))
             elif index == self.selectedLayer:
@@ -258,6 +266,7 @@ class Interface:
             else:
                 placeOver(self.l_aboveLayer, scaledDrawingImage, (0,0))
             placeOver(self.l_total, scaledDrawingImage, (0,0))
+
     
     def processTools(self, im):
         '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
@@ -308,6 +317,8 @@ class Interface:
     def calcScreenToZoomedY(self, y): return y - 329 + (self.cameraPos[1] * self.sketchZoom/100)
     def calcZoomedToScreenX(self, x): return x - (self.cameraPos[0] * self.sketchZoom/100) + 512
     def calcZoomedToScreenY(self, y): return y - (self.cameraPos[1] * self.sketchZoom/100) + 329
+    def calcScreenToNonZoomedX(self, x): return (x - 512)/(self.sketchZoom/100) + self.cameraPos[0]
+    def calcScreenToNonZoomedY(self, y): return (y - 329)/(self.sketchZoom/100) + self.cameraPos[1]
 
     def saveState(self):
         pass

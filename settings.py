@@ -18,6 +18,8 @@ INTERFACE_FPS = 60 # The interface window will be called every 1/INTERFACE_FPS s
 TICK_MS = 1 #round((1/INTERFACE_FPS)*1000)
 OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it runs processes that do not need updates every tick
 
+SKETCH_QUALITY = 3 # The display quality of the sketch SHOWN computationally. 1 is the highsst, the greater you go, the more pixelated it gets
+
 BACKGROUND_COLOR = "#333247" #Background color
 FRAME_COLOR      = "#524f6b" #Borders and Frame color
 SELECTED_COLOR   = "#bebcd5" #Selected Element color
