@@ -2,7 +2,7 @@
 
 from PIL import Image, ImageDraw
 import numpy, random, colorsys
-from settings import FONT_SMALL, FONT_MEDIUM, FONT_LARGE, BACKGROUND_COLOR, SELECTED_COLOR, FRAME_COLOR, hexColorToRGBA
+from settings import FONT_SMALL, FONT_SMALL_MEDIUM, FONT_MEDIUM, FONT_LARGE, BACKGROUND_COLOR, SELECTED_COLOR, FRAME_COLOR, hexColorToRGBA
 from subsystems.simplefancy import *
 
 def displayText(text: str, size, colorBG:tuple|list = (0,0,0,0), colorTXT:tuple|list = (255,255,255,255), bold = False):
@@ -11,6 +11,8 @@ def displayText(text: str, size, colorBG:tuple|list = (0,0,0,0), colorTXT:tuple|
         font = FONT_SMALL
     elif size == "m":
         font = FONT_MEDIUM
+    elif size == "sm" or size == "ms":
+        font = FONT_SMALL_MEDIUM
     else: 
         font = FONT_LARGE
     fsize = font.font.getsize(text)

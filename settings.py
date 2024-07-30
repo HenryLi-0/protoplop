@@ -72,6 +72,7 @@ MISSING_IMAGE_ARRAY = numpy.array(MISSING_IMAGE)
 # Fonts
 FONT_LARGE = ImageFont.truetype(os.path.join("resources", "Comfortaa-Medium.ttf"), 24)
 FONT_MEDIUM = ImageFont.truetype(os.path.join("resources", "Comfortaa-Medium.ttf"), 15)
+FONT_SMALL_MEDIUM = ImageFont.truetype(os.path.join("resources", "Comfortaa-Medium.ttf"), 12)
 FONT_SMALL = ImageFont.truetype(os.path.join("resources", "Comfortaa-Medium.ttf"), 10)
 EDITOR_SPACING = lambda x: x*20+15
 

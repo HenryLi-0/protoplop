@@ -242,16 +242,19 @@ class SliderVisualObject:
         self.positionO.setPosition(addP(pos, (10,10)))
         self.displayScalar = displayScalar
         self.bar = generateColorBox((length, 20), (0,0,0,0))
-        placeOver(self.bar, generateColorBox((length, 6), hexColorToRGBA(FRAME_COLOR)), (0,7))
-        placeOver(self.bar, generateColorBox((6, 20), hexColorToRGBA(FRAME_COLOR)), (0,0))
-        placeOver(self.bar, generateColorBox((6, 20), hexColorToRGBA(FRAME_COLOR)), (length-6,0))
+        placeOver(self.bar, generateColorBox((length, 2), hexColorToRGBA(FRAME_COLOR)), (0,9))
+        placeOver(self.bar, generateColorBox((3, 20), hexColorToRGBA(FRAME_COLOR)), (0,0))
+        placeOver(self.bar, generateColorBox((3, 20), hexColorToRGBA(FRAME_COLOR)), (length-3,0))
+        self.updatePos(-9999999, 0)
     def tick(self, img, active):
         placeOver(img, self.bar, self.originalPos)
-        placeOver(img, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, self.positionO.getPosition(), False)
+        placeOver(img, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, self.positionO.getPosition(), True)
         if active: 
-            placeOver(img, displayText(str(round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar)), "m"), addP(self.positionO.getPosition(), (10,15)), True)
+            placeOver(img, displayText(str(round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar)), "s", (0,0,0,150), (255,255,255,255)), addP(self.positionO.getPosition(), (0,25)), True)
+    def getData(self):
+        return round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar)
     def updatePos(self, rmx, rmy):
-        self.positionO.setX(max(self.originalPos[0] - 10, min(rmx, self.originalPos[0] + self.length - 10)))
+        self.positionO.setX(max(self.originalPos[0], min(rmx, self.originalPos[0] + self.length)))
     def keepInFrame(self, maxX, maxY):
         pos = self.positionO.getPosition()
         if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:

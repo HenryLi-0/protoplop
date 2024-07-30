@@ -26,7 +26,7 @@ class Window:
 
         '''load test image'''
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
-        self.w_sketch = LabelWrapper(self.window, (1024, 658), (  20,  20), (  20,  20), VOID_COLOR      , FRAME_SKETCH_INSTRUCTIONS)
+        self.w_sketch = LabelWrapper(self.window, (1024, 658), (  20,  20), (  20,  20),       VOID_COLOR, FRAME_SKETCH_INSTRUCTIONS)
         self.b_sketch = self.w_sketch.getBlank() 
         self.w_tools  = LabelWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
         self.b_tools  = self.w_tools .getBlank() 

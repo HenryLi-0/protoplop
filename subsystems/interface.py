@@ -46,8 +46,7 @@ class Interface:
             -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
-            
-            1: ["t", SliderVisualObject("goofy ahh", (120,20),80,10)]
+
             # self.c.c():["o",ButtonVisualObject("sprites",(7,0),FRAME_OPTIONS_BUTTON_OFF_ARRAY,FRAME_OPTIONS_BUTTON_ON_ARRAY)],
         }
         #for i in range(10): self.interactableVisualObjects[self.c.c()] = ["a", OrbVisualObject(f"test{i}")]
@@ -58,6 +57,8 @@ class Interface:
         self.consoleAlerts = []
         
         self.selectedTool = -99
+        self.previousSelectedTool = self.selectedTool
+        self.sliders = []
 
         self.imageSize = (1366,697)
         self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
@@ -96,7 +97,7 @@ class Interface:
         self.mouseInToolsSection  = 1057 <= self.mx and self.mx <= 1344 and   20 <= self.my and self.my <=  198
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
-        
+
         if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
             print("button press")
 
@@ -183,6 +184,10 @@ class Interface:
                     if self.interactableVisualObjects[id][1].getInteractable(self.mx - 1057, self.my - 380):
                         self.interacting = id
                         break
+                if self.interactableVisualObjects[id][0] == "p":
+                    if self.interactableVisualObjects[id][1].getInteractable(self.mx - 756, self.my - 20):
+                        self.interacting = id
+                        break
         if self.interacting != -999:
             section = self.interactableVisualObjects[self.interacting][0]
             if section == "s": 
@@ -197,6 +202,9 @@ class Interface:
             if section == "l": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 380)
                 self.interactableVisualObjects[self.interacting][1].keepInFrame(288,298)
+            if section == "p": 
+                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 756, self.my - 20)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,179)
         if ((self.mPressed)) and (previousInteracting == -999) and (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"): 
             self.stringKeyQueue = self.interactableVisualObjects[self.interacting][1].txt
         if (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"):
@@ -269,9 +277,39 @@ class Interface:
 
     def processPopUp(self, im):
         '''Tools Area: `(756,20) to (1043,198)`: size `(288,179)`'''
-        if self.selectedTool in [-97]:
+        if self.selectedTool in [-97, -96, -95]:
             img = im.copy()
+            if self.previousSelectedTool != self.selectedTool:
+                self.previousSelectedTool = self.selectedTool
+                temp = []
+                for id in self.interactableVisualObjects:
+                    if self.interactableVisualObjects[id][0] == "p":
+                        temp.append(id)
+                for id in temp:
+                    self.interactableVisualObjects.pop(id)
+                if self.selectedTool == -97: # Paint Brush
+                    self.sliders = [self.c.c(), self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", SliderVisualObject("Size", (20,55), 248,100)]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Wet", (20,105), 248,100)]
+                if self.selectedTool == -96: # Pencil
+                    pass
+                if self.selectedTool == -95: # Eraser
+                    pass
+            else:
+                if self.selectedTool == -97: # Paint Brush
+                    placeOver(img, displayText(f"Paint Brush:", "m"), (10,10))
+                    placeOver(img, displayText(f"Size: {self.interactableVisualObjects[self.sliders[0]][1].getData()}", "sm"), (10, 35))
+                    placeOver(img, displayText(f"Wet idk: {self.interactableVisualObjects[self.sliders[1]][1].getData()}", "sm"), (10, 85))
+                if self.selectedTool == -96: # Pencil
+                    pass
+                if self.selectedTool == -95: # Eraser
+                    pass
 
+
+
+            for id in self.interactableVisualObjects:
+                if self.interactableVisualObjects[id][0] == "p":
+                    self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
             return img
         else:
             return "no"
