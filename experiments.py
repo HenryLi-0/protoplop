@@ -18,3 +18,16 @@ from settings import *
 #     print(f"{i+1} tests | {total/(i+1)}s each")
 
 print(ALL_REGIONS)
+
+'''taken from window.py'''
+        # timer = 0
+        # for i in range(1000):
+        #     start = time.time()
+        #     arrayToImage(self.interface.processFetchSketchSector(0,0))
+        #     end = time.time()
+        #     timer += (end-start)
+        #     print(f"{i+1} tests | {timer/(i+1)}s each")
+        # print(timer/1000)
+        # while True:
+        #     pass
+
