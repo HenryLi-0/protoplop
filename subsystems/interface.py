@@ -16,6 +16,8 @@ class Interface:
     def __init__(self):
         self.mx = 0
         self.my = 0
+        self.prevmx = 0
+        self.prevmy = 0
         self.mPressed = False
         self.mRising = False
         self.fps = 0
@@ -81,11 +83,14 @@ class Interface:
         self.drawing = False
         self.brush = None
         self.brushColor = [255,127,0,255]
+        self.brushSize = 0
 
         pass
 
     def tick(self,mx,my,mPressed,fps,keyQueue,mouseScroll):
         '''Entire Screen: `(0,0) to (1365,697)`: size `(1366,698)`'''
+        self.prevmx = self.mx
+        self.prevmy = self.my
         self.mx = mx if (0<=mx and mx<=1365) and (0<=my and my<=697) else self.mx 
         self.my = my if (0<=mx and mx<=1365) and (0<=my and my<=697) else self.my
         self.mPressed = mPressed > 0
@@ -282,6 +287,12 @@ class Interface:
     def processDrawing(self):
         rmx = self.mx-20
         rmy = self.my-20
+        prevrmx = self.prevmx-20
+        prevrmy = self.prevmy-20
+        tx = self.calcScreenToNonZoomedX(rmx)
+        ty = self.calcScreenToNonZoomedY(rmy)
+        ptx = self.calcScreenToNonZoomedX(prevrmx)
+        pty = self.calcScreenToNonZoomedY(prevrmy)
         if (self.interacting == -999 or self.interacting == -995) and (self.selectedTool in self.drawingToolIDs) and (self.mouseInSketchSection) and (self.mRising):
             self.interacting = -995
             self.drawing = True
@@ -289,7 +300,14 @@ class Interface:
             self.interacting = -999
             self.drawing = False
         if self.interacting == -995:
-            placeOver(self.layers[self.selectedLayer], self.brush, (self.calcScreenToNonZoomedX(rmx), self.calcScreenToNonZoomedY(rmy)), True)
+            if abs(tx - pty) < self.brushSize*2:
+                placeOver(self.layers[self.selectedLayer], self.brush, (tx,ty), True)
+            else:
+                steps = math.ceil(math.sqrt((tx-ptx)**2 + (ty-pty)**2)/self.brushSize)+1
+                i = 0
+                while i <= steps:
+                    placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
+                    i+=1
             self.updateSketchLayers = True
             self.updateSketch = True
 
@@ -327,6 +345,7 @@ class Interface:
                         temp = [self.interactableVisualObjects[self.sliders[0]][1].getData(), self.interactableVisualObjects[self.sliders[1]][1].getData()]
                         if self.slidersData != temp:
                             self.brush = generatePaintBrush(temp[0], self.brushColor, temp[1])
+                            self.brushSize = temp[0]
                             self.slidersData = temp
                             self.consoleAlerts.append(f"{self.ticks} - generated a brush!")
                     
