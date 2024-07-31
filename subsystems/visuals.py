@@ -232,15 +232,16 @@ class PointVisualObject:
         return self.positionO.getInteract(rmx, rmy)
 
 class SliderVisualObject:
-    '''A slider!!! No way!!! ??? x 20'''
-    def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), length = random.randrange(50,100), displayScalar = 1):
+    '''A slider!!! No way!!!'''
+    def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), length = random.randrange(50,100), sliderRange = [1,100]):
         self.type = "slider"
         self.name = name
         self.originalPos = pos
         self.length = length
         self.positionO = CircularPositionalBox(15)
         self.positionO.setPosition(addP(pos, (10,10)))
-        self.displayScalar = displayScalar
+        self.displayScalar = sliderRange[1]-sliderRange[0]
+        self.sliderRange = sliderRange
         self.bar = generateColorBox((length, 20), (0,0,0,0))
         placeOver(self.bar, generateColorBox((length, 2), hexColorToRGBA(FRAME_COLOR)), (0,9))
         placeOver(self.bar, generateColorBox((3, 20), hexColorToRGBA(FRAME_COLOR)), (0,0))
@@ -250,9 +251,9 @@ class SliderVisualObject:
         placeOver(img, self.bar, self.originalPos)
         placeOver(img, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, self.positionO.getPosition(), True)
         if active: 
-            placeOver(img, displayText(str(round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar)), "s", (0,0,0,150), (255,255,255,255)), addP(self.positionO.getPosition(), (0,25)), True)
+            placeOver(img, displayText(str(round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar+self.sliderRange[0])), "s", (0,0,0,150), (255,255,255,255)), addP(self.positionO.getPosition(), (0,25)), True)
     def getData(self):
-        return round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar)
+        return round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar+self.sliderRange[0])
     def updatePos(self, rmx, rmy):
         self.positionO.setX(max(self.originalPos[0], min(rmx, self.originalPos[0] + self.length)))
     def keepInFrame(self, maxX, maxY):

@@ -6,6 +6,14 @@ from subsystems.label import LabelWrapper
 from subsystems.simplefancy import generatePaintBrush
 from settings import *
 
-img = generatePaintBrush(100,(50,20,255,127),100)
+bigImage1 = generateColorBox((1024,658))
+bigImage2 = generateColorBox((1024,658), (50,50,50,50))
 
-Image.fromarray(img).show()
+total = 0
+for i in range(100):
+    start = time.time()
+    placeOver(bigImage1, bigImage2, (0,0))
+    end = time.time()
+    total += end-start
+    print(f"{i+1} tests | {total/(i+1)}s each")
+

@@ -68,6 +68,7 @@ class Interface:
         self.drawingImage = LOADING_IMAGE_ARRAY 
         self.blankLayer = generateColorBox((self.imageSize[0], self.imageSize[1]), (0,0,0,0))
         self.blankProcessingLayer = setSize(self.blankLayer, 100/SKETCH_QUALITY)
+        self.blankProcessingLayerSector = generateColorBox((128,94), (0,0,0,0))
         self.layers = [
             self.blankLayer.copy(),
             LOADING_IMAGE_ARRAY, 
@@ -83,7 +84,7 @@ class Interface:
         self.drawing = False
         self.brush = None
         self.brushColor = [255,127,0,255]
-        self.brushSize = 0
+        self.brushSize = 1
 
         pass
 
@@ -237,15 +238,13 @@ class Interface:
         
         self.consoleAlerts.append(f"{time.time()} - processSketch() running")
         
-        # for ix in range(0,8+1):
-        #     for iy in range(0,7+1):
-        #         placeOver(img, getRegion(self.l_belowLayer  , (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
-        #         placeOver(img, getRegion(self.l_currentLayer, (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
-        #         placeOver(img, getRegion(self.l_aboveLayer  , (ix*128, iy*94), ((ix+1)*128, (iy+1)*94)), (ix*128, iy*94))
+        for ix in range(0,8+1):
+            for iy in range(0,7+1):
+                placeOver(img, self.processFetchSketchSector(ix, iy), (round(ix*128/SKETCH_QUALITY),round(iy*94/SKETCH_QUALITY)))
 
-        placeOver(img, self.l_belowLayer,   (0,0))
-        placeOver(img, self.l_currentLayer, (0,0))
-        placeOver(img, self.l_aboveLayer,   (0,0))
+        # placeOver(img, self.l_belowLayer,   (0,0))
+        # placeOver(img, self.l_currentLayer, (0,0))
+        # placeOver(img, self.l_aboveLayer,   (0,0))
         
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "s":
@@ -283,6 +282,22 @@ class Interface:
             else:
                 placeOver(self.l_aboveLayer, scaledDrawingImage, (0,0))
             placeOver(self.l_total, scaledDrawingImage, (0,0))
+    
+    def processFetchSketchSector(self, x, y):
+        '''128x94'''
+        self.selectedLayer = max(1,min(self.selectedLayer,len(self.layers)-2))
+        total = self.blankProcessingLayerSector.copy()
+
+        for index in range(0, len(self.layers)):
+            if self.sketchZoom < 100: # The entire image is smaller than the screen
+                scaledDrawingImage = setSize(self.layers[index], (self.sketchZoom))
+                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2)
+                if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
+            else: # The image is in one dimension or another larger than the screen
+                scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)))
+                scaledDrawingImage = setSizeSize(scaledDrawingImage, (round(128*1/SKETCH_QUALITY), round(94*1/SKETCH_QUALITY)))
+            placeOver(total, scaledDrawingImage, (0,0))
+        return total
 
     def processDrawing(self):
         rmx = self.mx-20
@@ -330,8 +345,8 @@ class Interface:
                     self.interactableVisualObjects.pop(id)
                 if self.selectedTool == -97: # Paint Brush
                     self.sliders = [self.c.c(), self.c.c()]
-                    self.interactableVisualObjects[self.sliders[0]] = ["p", SliderVisualObject("Size", (20,55), 248,100)]
-                    self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Strength", (20,105), 248,100)]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", SliderVisualObject("Size", (20,55), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Strength", (20,105), 248, (1,100))]
                 if self.selectedTool == -96: # Pencil
                     pass
                 if self.selectedTool == -95: # Eraser
