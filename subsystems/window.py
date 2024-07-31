@@ -28,12 +28,15 @@ class Window:
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
         self.w_sketch = LabelWrapper(self.window, (1024, 658), (  20,  20), (  20,  20),       VOID_COLOR, FRAME_SKETCH_INSTRUCTIONS)
         self.b_sketch = self.w_sketch.getBlank() 
+        self.i_sketch = self.b_sketch.copy()
         self.w_tools  = LabelWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
         self.b_tools  = self.w_tools .getBlank() 
         self.w_colors = LabelWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
         self.b_colors = self.w_colors.getBlank() 
         self.w_layers = LabelWrapper(self.window, ( 288, 298), (1057, 380), (1057, 380), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
         self.b_layers = self.w_layers.getBlank() 
+        self.w_popUp  = LabelWrapper(self.window, ( 288, 179), ( 756,  20), ( 756,  20), BACKGROUND_COLOR, FRAME_LAYERS_INSTRUCTIONS)
+        self.b_popUp  = self.w_popUp.getBlank() 
 
         '''start interface'''
         self.interface = Interface()
@@ -51,25 +54,29 @@ class Window:
         self.interface.tick(mx,my,self.mPressed, self.fps, self.keysPressed, self.mouseScroll)
         self.mouseScroll = 0
         
+        temp = self.interface.updateSketchLayers or self.interface.updateSketch or len(self.interface.updateSketchRegions) > 0
         if self.interface.updateSketchLayers:
             self.interface.processSketchLayers()
             self.interface.updateSketchLayers = False
         if self.interface.updateSketch: 
-            self.i_sketch = self.interface.processSketch(self.b_sketch)
-            self.i_sketch_overlay = self.i_sketch.copy()
-            self.w_sketch.update(arrayToImage(self.interface.processSketch(self.b_sketch)))
+            self.i_sketch = self.interface.processSketch(self.i_sketch)
+            self.w_sketch.update(arrayToImage(self.i_sketch))
             self.interface.updateSketch = False
 
         '''OPTIMIZE, CONSTANT SKETCH SCREEN UPDATES ARE NOT NECCESARY!'''
-        temp = self.interface.processPopUp(self.b_tools)
-        if type(temp) == numpy.ndarray:
-            placeOver(self.i_sketch_overlay, temp, (736,0))
-            self.w_sketch.update(arrayToImage(self.i_sketch_overlay))
-        else:
+        if temp:
+            self.i_sketch = self.interface.processSketch(self.i_sketch)
             self.w_sketch.update(arrayToImage(self.i_sketch))
         self.w_tools .update(arrayToImage(self.interface.processTools (self.b_tools )))
         self.w_colors.update(arrayToImage(self.interface.processColors(self.b_colors)))
         self.w_layers.update(arrayToImage(self.interface.processLayers(self.b_layers)))
+        self.w_popUp .update(arrayToImage(self.interface.processPopUp (self.b_popUp )))
+
+        if self.interface.selectedTool in self.interface.drawingToolIDs:
+            if not(self.w_popUp.shown): self.w_popUp.show()
+        else:
+            if self.w_popUp.shown: self.w_popUp.hide()
+
 
         self.fpsCounter +=1
         if math.floor(time.time()) == round(time.time()) and not(self.fpsGood):

@@ -49,6 +49,7 @@ class Interface:
         }
         '''Control'''
         self.interacting = -999
+        self.previousInteracting = -999
         self.stringKeyQueue = ""
         self.mouseScroll = 0 
         self.consoleAlerts = []
@@ -64,6 +65,7 @@ class Interface:
         self.sketchZoom = 100
         self.updateSketch = True
         self.updateSketchLayers = True
+        self.updateSketchRegions = ALL_REGIONS.copy()
         '''Layers'''
         self.drawingImage = LOADING_IMAGE_ARRAY 
         self.blankLayer = generateColorBox((self.imageSize[0], self.imageSize[1]), (0,0,0,0))
@@ -124,8 +126,6 @@ class Interface:
         if self.interacting == -999 or self.interacting == -997:
             if KB_ZOOM(keyQueue) and self.mPressed:
                 '''ZOOM: CTRL + SPACE + MOUSE_MOVEMENT'''
-                self.updateSketch = True
-                self.updateSketchLayers = True
                 if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
                     self.interactableVisualObjects[-997][1].data = (mx-20, my-20, self.sketchZoom)
@@ -137,6 +137,7 @@ class Interface:
                 '''FOCUS: CTRL + F + Click'''
                 self.updateSketch = True
                 self.updateSketchLayers = True
+                self.updateSketchRegions = ALL_REGIONS.copy()
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
 
         self.processDrawing()
@@ -149,6 +150,7 @@ class Interface:
             if self.interacting == -996 and self.mouseInSketchSection:
                 self.updateSketch = True
                 self.updateSketchLayers = True
+                self.updateSketchRegions = ALL_REGIONS.copy()
                 temp = self.interactableVisualObjects[-996][1].data
                 self.sketchZoom -= self.mouseScroll/10
                 self.sketchZoom = max(1, min(self.sketchZoom, 10000))
@@ -171,7 +173,7 @@ class Interface:
         pass
 
         '''Interacting With...'''
-        previousInteracting = self.interacting
+        self.previousInteracting = self.interacting
         if not(self.mPressed):
             self.interacting = -999
         if self.interacting == -999 and self.mPressed and self.mRising:
@@ -215,32 +217,34 @@ class Interface:
             if section == "p": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 756, self.my - 20)
                 self.interactableVisualObjects[self.interacting][1].keepInFrame(288,179)
-        if ((self.mPressed)) and (previousInteracting == -999) and (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"): 
+        if ((self.mPressed)) and (self.previousInteracting == -999) and (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"): 
             self.stringKeyQueue = self.interactableVisualObjects[self.interacting][1].txt
         if (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"):
             self.interactableVisualObjects[self.interacting][1].updateText(self.stringKeyQueue)
-        if (previousInteracting != -999) and (previousInteracting != -998):
-            if (self.interactableVisualObjects[previousInteracting][1].type  == "textbox"):
+        if (self.previousInteracting != -999) and (self.previousInteracting != -998):
+            if (self.interactableVisualObjects[self.previousInteracting][1].type  == "textbox"):
                 if not(self.interacting == -998):
-                    self.interacting = previousInteracting
+                    self.interacting = self.previousInteracting
                     self.interactableVisualObjects[self.interacting][1].updateText(self.stringKeyQueue)
                 else:
-                    self.interactableVisualObjects[previousInteracting][1].updateText(self.stringKeyQueue)
+                    self.interactableVisualObjects[self.previousInteracting][1].updateText(self.stringKeyQueue)
 
 
     def processSketch(self, im):
         '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
-        img = im.copy()
+        img = setSize(im.copy(), 100/SKETCH_QUALITY)
         rmx = self.mx - 20
         rmy = self.my - 20
 
-        img = setSize(im.copy(), 100/SKETCH_QUALITY)
         
         self.consoleAlerts.append(f"{time.time()} - processSketch() running")
         
-        for ix in range(0,8+1):
-            for iy in range(0,7+1):
-                placeOver(img, self.processFetchSketchSector(ix, iy), (round(ix*128/SKETCH_QUALITY),round(iy*94/SKETCH_QUALITY)))
+        if len(self.updateSketchRegions) > 0:
+            i = 0
+            for i in range(min(SKETCH_MAX_REGIONS, len(self.updateSketchRegions))):
+                ix, iy = self.updateSketchRegions.pop(0)
+                placeOver(img, self.processFetchSketchSector(ix, iy), (math.floor(ix*128/SKETCH_QUALITY),math.floor(iy*94/SKETCH_QUALITY)))
+                
 
         # placeOver(img, self.l_belowLayer,   (0,0))
         # placeOver(img, self.l_currentLayer, (0,0))
@@ -268,10 +272,10 @@ class Interface:
         for index in range(0, len(self.layers)):
             if self.sketchZoom < 100: # The entire image is smaller than the screen
                 scaledDrawingImage = setSize(self.layers[index], (self.sketchZoom))
-                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512, self.cameraPos[1]*(self.sketchZoom/100) - 329), (self.cameraPos[0]*(self.sketchZoom/100) + 512, self.cameraPos[1]*(self.sketchZoom/100) + 329), 2)
+                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512, self.cameraPos[1]*(self.sketchZoom/100) - 329), (self.cameraPos[0]*(self.sketchZoom/100) + 512, self.cameraPos[1]*(self.sketchZoom/100) + 329), 2, color=VOID_COLOR_RGBA)
                 if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
             else: # The image is in one dimension or another larger than the screen
-                scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] - 512*(100/self.sketchZoom),self.cameraPos[1] - 329*(100/self.sketchZoom)), (self.cameraPos[0] + 512*(100/self.sketchZoom),self.cameraPos[1] + 329*(100/self.sketchZoom)))
+                scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] - 512*(100/self.sketchZoom),self.cameraPos[1] - 329*(100/self.sketchZoom)), (self.cameraPos[0] + 512*(100/self.sketchZoom),self.cameraPos[1] + 329*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
                 scaledDrawingImage = setSizeSize(scaledDrawingImage, (round(1024*1/SKETCH_QUALITY), round(658*1/SKETCH_QUALITY)))
             if index < self.selectedLayer:
                 placeOver(self.l_belowLayer, scaledDrawingImage, (0,0))
@@ -291,11 +295,11 @@ class Interface:
         for index in range(0, len(self.layers)):
             if self.sketchZoom < 100: # The entire image is smaller than the screen
                 scaledDrawingImage = setSize(self.layers[index], (self.sketchZoom))
-                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2)
+                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=VOID_COLOR_RGBA)
                 if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
             else: # The image is in one dimension or another larger than the screen
-                scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)))
-                scaledDrawingImage = setSizeSize(scaledDrawingImage, (round(128*1/SKETCH_QUALITY), round(94*1/SKETCH_QUALITY)))
+                scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
+                scaledDrawingImage = setSizeSize(scaledDrawingImage, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
             placeOver(total, scaledDrawingImage, (0,0))
         return total
 
@@ -332,7 +336,7 @@ class Interface:
 
 
     def processPopUp(self, im):
-        '''Tools Area: `(756,20) to (1043,198)`: size `(288,179)`'''
+        '''Pop Up Area: `(756,20) to (1043,198)`: size `(288,179)`'''
         if self.selectedTool in self.drawingToolIDs:
             img = im.copy()
             if self.previousSelectedTool != self.selectedTool:
@@ -376,7 +380,7 @@ class Interface:
                     self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
             return img
         else:
-            return "no"
+            return EMPTY_IMAGE_ARRAY
 
     
     def processTools(self, im):

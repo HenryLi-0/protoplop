@@ -19,15 +19,21 @@ TICK_MS = 1 #round((1/INTERFACE_FPS)*1000)
 OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it runs processes that do not need updates every tick
 
 SKETCH_QUALITY = 3 # The display quality of the sketch SHOWN computationally. 1 is the highsst, the greater you go, the more pixelated it gets
+SKETCH_MAX_REGIONS = 48 # The maximum allowed regions of the sketch screen (total 48) allowed to be updated per call to update
+
+hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
+RGBAToHexColor = lambda rgba: 0 
+'''please write that ^^^'''
 
 BACKGROUND_COLOR = "#333247" #Background color
 FRAME_COLOR      = "#524f6b" #Borders and Frame color
 SELECTED_COLOR   = "#bebcd5" #Selected Element color
 VOID_COLOR       = "#84829b" #Void color
 
-hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
-RGBAToHexColor = lambda rgba: 0 
-'''please write that ^^^'''
+BACKGROUND_COLOR_RGBA = hexColorToRGBA(BACKGROUND_COLOR)
+FRAME_COLOR_RGBA      = hexColorToRGBA(FRAME_COLOR     )
+SELECTED_COLOR_RGBA   = hexColorToRGBA(SELECTED_COLOR  )
+VOID_COLOR_RGBA       = hexColorToRGBA(VOID_COLOR      )
 
 '''Saving'''
 import os, time
@@ -54,6 +60,7 @@ VERSION = "v0.0.0-really really early in development"
 
 ICON_SPACING = lambda x,y: (6+43*x, 6+43*y)
 
+ALL_REGIONS = [(x,y) for x in range(8) for y in range(7)]
 # Imagery
 LOADING_IMAGE = Image.open(os.path.join("resources", "loading.png")).convert("RGBA") # 1366x697, Solid, Loading Screen
 LOADING_IMAGE_ARRAY = numpy.array(LOADING_IMAGE)
@@ -70,6 +77,7 @@ PLACEHOLDER_IMAGE_5_ARRAY = numpy.array(PLACEHOLDER_IMAGE_5)
 MISSING_IMAGE_PATH = os.path.join("resources", "missing.png")
 MISSING_IMAGE = Image.open(os.path.join("resources", "missing.png")).convert("RGBA")
 MISSING_IMAGE_ARRAY = numpy.array(MISSING_IMAGE)
+EMPTY_IMAGE_ARRAY = numpy.zeros((1, 1, 4), dtype=numpy.uint8)
 
 # Fonts
 FONT_LARGE = ImageFont.truetype(os.path.join("resources", "Comfortaa-Medium.ttf"), 24)
