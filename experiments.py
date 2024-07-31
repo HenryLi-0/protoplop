@@ -17,7 +17,10 @@ from settings import *
 #     total += end-start
 #     print(f"{i+1} tests | {total/(i+1)}s each")
 
-print(ALL_REGIONS)
+# print(ALL_REGIONS)
+
+x = {(5,5) : 5}
+print(x[((5,5))])
 
 '''taken from window.py'''
         # timer = 0

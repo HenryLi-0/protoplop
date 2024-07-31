@@ -26,9 +26,9 @@ class Window:
 
         '''load test image'''
         testImage = ImageTk.PhotoImage(PLACEHOLDER_IMAGE)
-        self.w_sketch = LabelWrapper(self.window, (1024, 658), (  20,  20), (  20,  20),       VOID_COLOR, FRAME_SKETCH_INSTRUCTIONS)
-        self.b_sketch = self.w_sketch.getBlank() 
-        self.i_sketch = self.b_sketch.copy()
+        self.w_sketch = {}
+        for region in ALL_REGIONS:
+            self.w_sketch[region] = LabelWrapper(self.window, (128, 94), (region[0]*128+20, region[1]*94+20), (region[0]*128+20, region[1]*94+20), VOID_COLOR)
         self.w_tools  = LabelWrapper(self.window, ( 288, 179), (1057,  20), (1057,  20), BACKGROUND_COLOR, FRAME_TOOLS_INSTRUCTIONS )
         self.b_tools  = self.w_tools .getBlank() 
         self.w_colors = LabelWrapper(self.window, ( 288, 155), (1057, 212), (1057, 212), BACKGROUND_COLOR, FRAME_COLORS_INSTRUCTIONS)
@@ -56,17 +56,23 @@ class Window:
         
         temp = self.interface.updateSketchLayers or self.interface.updateSketch or len(self.interface.updateSketchRegions) > 0
         if self.interface.updateSketchLayers:
-            self.interface.processSketchLayers()
-            self.interface.updateSketchLayers = False
+            # self.interface.processSketchLayers()
+            # self.interface.updateSketchLayers = False
+            pass
         if self.interface.updateSketch: 
-            self.i_sketch = self.interface.processSketch(self.i_sketch)
-            self.w_sketch.update(arrayToImage(self.i_sketch))
-            self.interface.updateSketch = False
+            # self.i_sketch = self.interface.processSketch(self.i_sketch)
+            # self.w_sketch.update(arrayToImage(self.i_sketch))
+            # self.interface.updateSketch = False
+            pass
 
         '''OPTIMIZE, CONSTANT SKETCH SCREEN UPDATES ARE NOT NECCESARY!'''
-        if temp:
-            self.i_sketch = self.interface.processSketch(self.i_sketch)
-            self.w_sketch.update(arrayToImage(self.i_sketch))
+        if len(self.interface.updateSketchRegions) > 0:
+            i = 0
+            for i in range(min(SKETCH_MAX_REGIONS, len(self.interface.updateSketchRegions))):
+                region = self.interface.updateSketchRegions.pop(0)
+                temp = arrayToImage(self.interface.processFetchSketchSector(region[0], region[1])).resize((128,94))
+                self.w_sketch[region].update(temp)
+            self.interface.consoleAlerts.append(f"{self.interface.ticks} - regions left: {len(self.interface.updateSketchRegions)}")
         self.w_tools .update(arrayToImage(self.interface.processTools (self.b_tools )))
         self.w_colors.update(arrayToImage(self.interface.processColors(self.b_colors)))
         self.w_layers.update(arrayToImage(self.interface.processLayers(self.b_layers)))

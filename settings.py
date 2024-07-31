@@ -18,8 +18,8 @@ INTERFACE_FPS = 60 # The interface window will be called every 1/INTERFACE_FPS s
 TICK_MS = 1 #round((1/INTERFACE_FPS)*1000)
 OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it runs processes that do not need updates every tick
 
-SKETCH_QUALITY = 3 # The display quality of the sketch SHOWN computationally. 1 is the highsst, the greater you go, the more pixelated it gets
-SKETCH_MAX_REGIONS = 48 # The maximum allowed regions of the sketch screen (total 48) allowed to be updated per call to update
+SKETCH_QUALITY = 1 # The display quality of the sketch SHOWN computationally. 1 is the highsst, the greater you go, the more pixelated it gets
+SKETCH_MAX_REGIONS = 5 # The maximum allowed regions of the sketch screen (total 48) allowed to be updated per call to update
 
 hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
 RGBAToHexColor = lambda rgba: 0 
