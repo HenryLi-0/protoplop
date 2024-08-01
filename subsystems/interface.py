@@ -87,6 +87,7 @@ class Interface:
         self.brush = None
         self.brushColor = [255,127,0,255]
         self.brushSize = 1
+        self.brushStrength = 100
 
         pass
 
@@ -137,7 +138,7 @@ class Interface:
                 '''FOCUS: CTRL + F + Click'''
                 self.updateSketch = True
                 self.updateSketchLayers = True
-                self.updateSketchRegions = ALL_REGIONS.copy()
+                self.scheduleAllRegions()
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
 
         self.processDrawing()
@@ -150,7 +151,7 @@ class Interface:
             if self.interacting == -996 and self.mouseInSketchSection:
                 self.updateSketch = True
                 self.updateSketchLayers = True
-                self.updateSketchRegions = ALL_REGIONS.copy()
+                self.scheduleAllRegions()
                 temp = self.interactableVisualObjects[-996][1].data
                 self.sketchZoom -= self.mouseScroll/10
                 self.sketchZoom = max(1, min(self.sketchZoom, 10000))
@@ -305,6 +306,7 @@ class Interface:
         return total 
 
     def processDrawing(self):
+        '''Run from tick(), is a seperate function/methoed for orginization'''
         rmx = self.mx-20
         rmy = self.my-20
         prevrmx = self.prevmx-20
@@ -316,25 +318,26 @@ class Interface:
         if (self.interacting == -999 or self.interacting == -995) and (self.selectedTool in self.drawingToolIDs) and (self.mouseInSketchSection) and (self.mRising):
             self.interacting = -995
             self.drawing = True
+            self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
         if self.interacting == -995 and not(self.mPressed):
             self.interacting = -999
             self.drawing = False
         if self.interacting == -995:
-            self.updateSketchRegions = ALL_REGIONS.copy()
-            if abs(tx - pty) < self.brushSize*2:
-                placeOver(self.layers[self.selectedLayer], self.brush, (tx,ty), True)
-            else:
-                steps = math.ceil(math.sqrt((tx-ptx)**2 + (ty-pty)**2)/self.brushSize)+1
-                i = 0
-                while i <= steps:
-                    placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
-                    i+=1
+            t = self.brushSize * (self.sketchZoom/100)
+            self.scheduleRegionGivenBrush(rmx, rmy, t)
+            steps = math.ceil(math.sqrt((tx-ptx)**2 + (ty-pty)**2)/self.brushSize)+1
+            i = 0
+            while i <= steps:
+                placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
+                self.scheduleRegionGivenBrush(rmx, rmy, t)
+                i+=1
             self.updateSketchLayers = True
             self.updateSketch = True
 
         if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
             # Color Picking
             self.brushColor = self.l_total[round(rmy*1/SKETCH_QUALITY), round(rmx*1/SKETCH_QUALITY)]
+            self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
 
 
     def processPopUp(self, im):
@@ -353,6 +356,8 @@ class Interface:
                     self.sliders = [self.c.c(), self.c.c()]
                     self.interactableVisualObjects[self.sliders[0]] = ["p", SliderVisualObject("Size", (20,55), 248, (1,100))]
                     self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Strength", (20,105), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushSize)
+                    self.interactableVisualObjects[self.sliders[1]][1].setData(self.brushStrength)
                 if self.selectedTool == -96: # Pencil
                     pass
                 if self.selectedTool == -95: # Eraser
@@ -367,6 +372,7 @@ class Interface:
                         if self.slidersData != temp:
                             self.brush = generatePaintBrush(temp[0], self.brushColor, temp[1])
                             self.brushSize = temp[0]
+                            self.brushStrength = temp[1]
                             self.slidersData = temp
                             self.consoleAlerts.append(f"{self.ticks} - generated a brush!")
                     
@@ -436,6 +442,31 @@ class Interface:
     def calcZoomedToScreenY(self, y): return y - (self.cameraPos[1] * self.sketchZoom/100) + 329
     def calcScreenToNonZoomedX(self, x): return (x - 512)/(self.sketchZoom/100) + self.cameraPos[0]
     def calcScreenToNonZoomedY(self, y): return (y - 329)/(self.sketchZoom/100) + self.cameraPos[1]
+
+
+    def scheduleRegionGivenBrush(self, rmx, rmy, t):
+        cornerA = (max(0, min(math.floor((rmx-t)/128), 8-1)), max(0, min(math.floor((rmy-t)/96), 7-1)))
+        cornerB = (max(0, min(math.floor((rmx+t)/128), 8-1)), max(0, min(math.floor((rmy+t)/96), 7-1)))
+        self.consoleAlerts.append(f"cornerA {cornerA}")
+        self.consoleAlerts.append(f"cornerB {cornerB}")
+        for ix in range(cornerB[0]-cornerA[0]+2):
+            for iy in range(cornerB[1]-cornerA[1]+2):
+                self.scheduleRegion((cornerA[0]+ix, cornerA[1]+iy))
+        
+    def scheduleRegionGivenPixel(self, pixel):
+        region = (max(0, min(pixel[0] // 128, 8-1)), max(0, min(pixel[1] // 96, 7-1)))
+        if region not in self.updateSketchRegions:
+            self.updateSketchRegions.append(region)
+
+    def scheduleRegion(self, region):
+        safeRegion = (max(0, min(region[0], 8-1)), max(0, min(region[1], 7-1)))
+        if safeRegion not in self.updateSketchRegions:
+            self.updateSketchRegions.append(safeRegion)
+
+    def scheduleAllRegions(self):
+        for region in ALL_REGIONS:
+            if region not in self.updateSketchRegions:
+                self.updateSketchRegions.append(region)
 
     def saveState(self):
         pass

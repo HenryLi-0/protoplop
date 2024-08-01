@@ -254,6 +254,8 @@ class SliderVisualObject:
             placeOver(img, displayText(str(round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar+self.sliderRange[0])), "s", (0,0,0,150), (255,255,255,255)), addP(self.positionO.getPosition(), (0,25)), True)
     def getData(self):
         return round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar+self.sliderRange[0])
+    def setData(self, extent):
+        self.updatePos(self.originalPos[0] + extent/self.displayScalar*self.length, 0)
     def updatePos(self, rmx, rmy):
         self.positionO.setX(max(self.originalPos[0], min(rmx, self.originalPos[0] + self.length)))
     def keepInFrame(self, maxX, maxY):

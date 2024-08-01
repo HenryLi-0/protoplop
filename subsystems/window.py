@@ -69,7 +69,7 @@ class Window:
         if len(self.interface.updateSketchRegions) > 0:
             i = 0
             for i in range(min(SKETCH_MAX_REGIONS, len(self.interface.updateSketchRegions))):
-                region = self.interface.updateSketchRegions.pop(random.randint(0, len(self.interface.updateSketchRegions)-1))
+                region = self.interface.updateSketchRegions.pop(0)
                 temp = arrayToImage(self.interface.processFetchSketchSector(region[0], region[1])).resize((128,94))
                 self.w_sketch[region].update(temp)
             self.interface.consoleAlerts.append(f"{self.interface.ticks} - regions left: {len(self.interface.updateSketchRegions)}")
