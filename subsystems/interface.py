@@ -7,7 +7,7 @@ import time, random, ast, cv2
 from subsystems.render import *
 from subsystems.fancy import *
 from subsystems.simplefancy import *
-from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject, SliderVisualObject
+from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject, SliderVisualObject, ColorVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
 from subsystems.label import LabelWrapper
@@ -46,6 +46,19 @@ class Interface:
             -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
+
+            -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(1,3), ICON_CONSOLE_ARRAY, (33,33))],
+
+            -79 : ["c", ColorVisualObject(f"past color {9}", (9*28+6, 128), 12, (255,255,255,255))],
+            -78 : ["c", ColorVisualObject(f"past color {8}", (8*28+6, 128), 12, (255,255,255,255))],
+            -77 : ["c", ColorVisualObject(f"past color {7}", (7*28+6, 128), 12, (255,255,255,255))],
+            -76 : ["c", ColorVisualObject(f"past color {6}", (6*28+6, 128), 12, (255,255,255,255))],
+            -75 : ["c", ColorVisualObject(f"past color {5}", (5*28+6, 128), 12, (255,255,255,255))],
+            -74 : ["c", ColorVisualObject(f"past color {4}", (4*28+6, 128), 12, (255,255,255,255))],
+            -73 : ["c", ColorVisualObject(f"past color {3}", (3*28+6, 128), 12, (255,255,255,255))],
+            -72 : ["c", ColorVisualObject(f"past color {2}", (2*28+6, 128), 12, (255,255,255,255))],
+            -71 : ["c", ColorVisualObject(f"past color {1}", (1*28+6, 128), 12, (255,255,255,255))],
+            -70 : ["c", ColorVisualObject(f"past color {0}", (0*28+6, 128), 12, (255,255,255,255))],
         }
         '''Control'''
         self.interacting = -999
@@ -82,7 +95,7 @@ class Interface:
         self.l_aboveLayer   = self.blankLayer.copy()
         self.l_total        = self.blankLayer.copy()
         '''Drawing and Brushes'''
-        self.drawingToolIDs = [-97, -96, -95]
+        self.drawingToolIDs = [-97, -96, -95, -80]
         self.drawing = False
         self.brush = None
         self.brushColor = [255,127,0,255]
@@ -378,10 +391,15 @@ class Interface:
                     
                 if self.selectedTool == -96: # Pencil
                     pass
+
                 if self.selectedTool == -95: # Eraser
                     pass
 
-
+                if self.selectedTool == -80: # Console
+                    placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s"), (5,164))
+                    if len(self.consoleAlerts) > 15: self.consoleAlerts = self.consoleAlerts[-15:]
+                    for i in range(len(self.consoleAlerts)):
+                        placeOver(img, displayText(f"{self.consoleAlerts[i]}", "s"), (5,i*10))
 
             for id in self.interactableVisualObjects:
                 if self.interactableVisualObjects[id][0] == "p":
@@ -406,16 +424,11 @@ class Interface:
     def processColors(self, im):
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
         img = im.copy()
-        placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s"), (0,140))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "c":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
-
-        if len(self.consoleAlerts) > 12: self.consoleAlerts = self.consoleAlerts[-12:]
-        for i in range(len(self.consoleAlerts)):
-            placeOver(img, displayText(f"{self.consoleAlerts[i]}", "s"), (5,i*10))
-
+        
         return img
 
     def processLayers(self, im):

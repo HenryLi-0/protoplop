@@ -255,9 +255,41 @@ class SliderVisualObject:
     def getData(self):
         return round((self.positionO.getX()-self.originalPos[0])/self.length*self.displayScalar+self.sliderRange[0])
     def setData(self, extent):
-        self.updatePos(self.originalPos[0] + extent/self.displayScalar*self.length, 0)
+        self.updatePos(self.originalPos[0] + (extent-self.sliderRange[0])/self.displayScalar*self.length, 0)
     def updatePos(self, rmx, rmy):
         self.positionO.setX(max(self.originalPos[0], min(rmx, self.originalPos[0] + self.length)))
+    def keepInFrame(self, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
+            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+    def getInteractable(self, rmx, rmy):
+        return self.positionO.getInteract(rmx, rmy)
+
+class ColorVisualObject:
+    '''Just a circle that shows a color!'''
+    def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), radius = 10, color = (0,0,0,255)):
+        self.type = "color"
+        self.name = name
+        self.positionO = CircularPositionalBox(radius)
+        self.positionO.setPosition(addP(pos, (radius,radius)))
+        self.radius = radius
+        self.color = color
+        self.circleOff = generateCircle(radius, FRAME_COLOR_RGBA)
+        placeOver(self.circleOff, generateCircle(radius-2, color), (radius, radius), True)
+        self.circleOn  = generateCircle(radius, SELECTED_COLOR_RGBA)
+        placeOver(self.circleOn , generateCircle(radius-2, color), (radius, radius), True)
+    def tick(self, img, active):
+        placeOver(img, self.circleOn if active else self.circleOff, self.positionO.getPosition(), True)
+    def getColor(self):
+        return self.color
+    def setColor(self, color):
+        self.color = color
+        self.circleOff = generateCircle(self.radius, FRAME_COLOR_RGBA)
+        placeOver(self.circleOff, generateCircle(self.radius-2, color))
+        self.circleOn  = generateCircle(self.radius, SELECTED_COLOR_RGBA)
+        placeOver(self.circleOn , generateCircle(self.radius-2, color))
+    def updatePos(self, rmx, rmy):
+        pass
     def keepInFrame(self, maxX, maxY):
         pos = self.positionO.getPosition()
         if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
