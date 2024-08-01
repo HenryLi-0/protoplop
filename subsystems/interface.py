@@ -320,6 +320,7 @@ class Interface:
             self.interacting = -999
             self.drawing = False
         if self.interacting == -995:
+            self.updateSketchRegions = ALL_REGIONS.copy()
             if abs(tx - pty) < self.brushSize*2:
                 placeOver(self.layers[self.selectedLayer], self.brush, (tx,ty), True)
             else:
