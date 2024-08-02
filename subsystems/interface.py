@@ -7,7 +7,7 @@ import time, random, ast, cv2
 from subsystems.render import *
 from subsystems.fancy import *
 from subsystems.simplefancy import *
-from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject, SliderVisualObject, ColorVisualObject
+from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject, HorizontalSliderVisualObject, ColorVisualObject, VerticalSliderVisualObject
 from subsystems.counter import Counter
 from subsystems.point import *
 from subsystems.label import LabelWrapper
@@ -49,16 +49,19 @@ class Interface:
 
             -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(1,3), ICON_CONSOLE_ARRAY, (33,33))],
 
-            -79 : ["c", ColorVisualObject(f"past color {9}", (9*28+6, 128), 12, (255,255,255,255))],
-            -78 : ["c", ColorVisualObject(f"past color {8}", (8*28+6, 128), 12, (255,255,255,255))],
-            -77 : ["c", ColorVisualObject(f"past color {7}", (7*28+6, 128), 12, (255,255,255,255))],
-            -76 : ["c", ColorVisualObject(f"past color {6}", (6*28+6, 128), 12, (255,255,255,255))],
-            -75 : ["c", ColorVisualObject(f"past color {5}", (5*28+6, 128), 12, (255,255,255,255))],
-            -74 : ["c", ColorVisualObject(f"past color {4}", (4*28+6, 128), 12, (255,255,255,255))],
-            -73 : ["c", ColorVisualObject(f"past color {3}", (3*28+6, 128), 12, (255,255,255,255))],
-            -72 : ["c", ColorVisualObject(f"past color {2}", (2*28+6, 128), 12, (255,255,255,255))],
-            -71 : ["c", ColorVisualObject(f"past color {1}", (1*28+6, 128), 12, (255,255,255,255))],
-            -70 : ["c", ColorVisualObject(f"past color {0}", (0*28+6, 128), 12, (255,255,255,255))],
+            -79 : ["c", ColorVisualObject("past color 9", (9*28+6, 128), 12, (255,255,255,255))],
+            -78 : ["c", ColorVisualObject("past color 8", (8*28+6, 128), 12, (255,255,255,255))],
+            -77 : ["c", ColorVisualObject("past color 7", (7*28+6, 128), 12, (255,255,255,255))],
+            -76 : ["c", ColorVisualObject("past color 6", (6*28+6, 128), 12, (255,255,255,255))],
+            -75 : ["c", ColorVisualObject("past color 5", (5*28+6, 128), 12, (255,255,255,255))],
+            -74 : ["c", ColorVisualObject("past color 4", (4*28+6, 128), 12, (255,255,255,255))],
+            -73 : ["c", ColorVisualObject("past color 3", (3*28+6, 128), 12, (255,255,255,255))],
+            -72 : ["c", ColorVisualObject("past color 2", (2*28+6, 128), 12, (255,255,255,255))],
+            -71 : ["c", ColorVisualObject("past color 1", (1*28+6, 128), 12, (255,255,255,255))],
+            -70 : ["c", ColorVisualObject("past color 0", (0*28+6, 128), 12, (255,255,255,255))],
+
+            -50 : ["c", VerticalSliderVisualObject("Hue", (232,20), 100, [0,360])],
+            -49 : ["c", VerticalSliderVisualObject("Transparency", (260,20), 100, [100,0])],
         }
         '''Control'''
         self.interacting = -999
@@ -101,6 +104,9 @@ class Interface:
         self.brushColor = [255,127,0,255]
         self.brushSize = 1
         self.brushStrength = 100
+        self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
+        self.colorPickerTransparency = self.interactableVisualObjects[-49][1].getData()
+        self.colorPickerImage = generateColorPicker(self.colorPickerHue/360,(162,100))
 
         pass
 
@@ -367,8 +373,8 @@ class Interface:
                     self.interactableVisualObjects.pop(id)
                 if self.selectedTool == -97: # Paint Brush
                     self.sliders = [self.c.c(), self.c.c()]
-                    self.interactableVisualObjects[self.sliders[0]] = ["p", SliderVisualObject("Size", (20,55), 248, (1,100))]
-                    self.interactableVisualObjects[self.sliders[1]] = ["p", SliderVisualObject("Strength", (20,105), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", HorizontalSliderVisualObject("Size", (20,55), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", HorizontalSliderVisualObject("Strength", (20,105), 248, (1,100))]
                     self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushSize)
                     self.interactableVisualObjects[self.sliders[1]][1].setData(self.brushStrength)
                 if self.selectedTool == -96: # Pencil
@@ -424,6 +430,14 @@ class Interface:
     def processColors(self, im):
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
         img = im.copy()
+
+        if self.colorPickerHue != self.interactableVisualObjects[-50][1].getData() or self.colorPickerTransparency != self.interactableVisualObjects[-49][1].getData():
+            self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
+            self.colorPickerTransparency = self.interactableVisualObjects[-49][1].getData()
+            self.colorPickerImage = generateColorPicker(self.colorPickerHue/360,(162,100))
+            print(self.colorPickerHue)
+
+        placeOver(img, self.colorPickerImage, (62,20))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "c":

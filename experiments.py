@@ -19,8 +19,8 @@ from settings import *
 
 # print(ALL_REGIONS)
 
-x = {(5,5) : 5}
-print(x[((5,5))])
+from subsystems.simplefancy import generateColorPicker
+Image.fromarray(generateColorPicker(0.7,(162,100))).show()
 
 '''taken from window.py'''
         # timer = 0

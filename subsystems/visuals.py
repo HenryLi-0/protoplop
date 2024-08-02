@@ -231,8 +231,8 @@ class PointVisualObject:
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
 
-class SliderVisualObject:
-    '''A slider!!! No way!!!'''
+class HorizontalSliderVisualObject:
+    '''A slider!!! No way!!! (horizontal)'''
     def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), length = random.randrange(50,100), sliderRange = [1,100]):
         self.type = "slider"
         self.name = name
@@ -258,6 +258,40 @@ class SliderVisualObject:
         self.updatePos(self.originalPos[0] + (extent-self.sliderRange[0])/self.displayScalar*self.length, 0)
     def updatePos(self, rmx, rmy):
         self.positionO.setX(max(self.originalPos[0], min(rmx, self.originalPos[0] + self.length)))
+    def keepInFrame(self, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
+            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+    def getInteractable(self, rmx, rmy):
+        return self.positionO.getInteract(rmx, rmy)
+    
+class VerticalSliderVisualObject:
+    '''A slider!!! No way!!! (vertical)'''
+    def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), length = random.randrange(50,100), sliderRange = [1,100]):
+        self.type = "slider"
+        self.name = name
+        self.originalPos = pos
+        self.length = length
+        self.positionO = CircularPositionalBox(15)
+        self.positionO.setPosition(addP(pos, (10,10)))
+        self.displayScalar = sliderRange[1]-sliderRange[0]
+        self.sliderRange = sliderRange
+        self.bar = generateColorBox((20, length), (0,0,0,0))
+        placeOver(self.bar, generateColorBox((2, length), hexColorToRGBA(FRAME_COLOR)), (9,0))
+        placeOver(self.bar, generateColorBox((20, 3), hexColorToRGBA(FRAME_COLOR)), (0,0))
+        placeOver(self.bar, generateColorBox((20, 3), hexColorToRGBA(FRAME_COLOR)), (0, length-3))
+        self.updatePos(0, -9999999)
+    def tick(self, img, active):
+        placeOver(img, self.bar, self.originalPos)
+        placeOver(img, POINT_SELECTED_ARRAY if active else POINT_IDLE_ARRAY, self.positionO.getPosition(), True)
+        if active: 
+            placeOver(img, displayText(str(round((self.positionO.getY()-self.originalPos[1])/self.length*self.displayScalar+self.sliderRange[0])), "s", (0,0,0,150), (255,255,255,255)), addP(self.positionO.getPosition(), (0,25)), True)
+    def getData(self):
+        return round((self.positionO.getY()-self.originalPos[1])/self.length*self.displayScalar+self.sliderRange[0])
+    def setData(self, extent):
+        self.updatePos(0, self.originalPos[1] + (extent-self.sliderRange[0])/self.displayScalar*self.length)
+    def updatePos(self, rmx, rmy):
+        self.positionO.setY(max(self.originalPos[1], min(rmy, self.originalPos[1] + self.length)))
     def keepInFrame(self, maxX, maxY):
         pos = self.positionO.getPosition()
         if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
