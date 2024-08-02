@@ -7,7 +7,7 @@ import time, random, ast, cv2
 from subsystems.render import *
 from subsystems.fancy import *
 from subsystems.simplefancy import *
-from subsystems.visuals import OrbVisualObject, ButtonVisualObject, EditableTextBoxVisualObject, DummyVisualObject, IconVisualObject, HorizontalSliderVisualObject, ColorVisualObject, VerticalSliderVisualObject
+from subsystems.visuals import *
 from subsystems.counter import Counter
 from subsystems.point import *
 from subsystems.label import LabelWrapper
@@ -62,6 +62,7 @@ class Interface:
 
             -50 : ["c", VerticalSliderVisualObject("Hue", (232,20), 100, [0,360])],
             -49 : ["c", VerticalSliderVisualObject("Transparency", (260,20), 100, [100,0])],
+            -48 : ["c", MovableColorVisualObject("Color Picker", (62-10,120-10), 10, [0,0,0,255])],
         }
         '''Control'''
         self.interacting = -999
@@ -97,8 +98,12 @@ class Interface:
         self.l_currentLayer = self.blankLayer.copy()
         self.l_aboveLayer   = self.blankLayer.copy()
         self.l_total        = self.blankLayer.copy()
+        '''Regions'''
+        self.regionDataCache = {}
+        for region in ALL_REGIONS:
+            self.regionDataCache[region] = EMPTY_IMAGE_ARRAY.copy()
         '''Drawing and Brushes'''
-        self.drawingToolIDs = [-97, -96, -95, -80]
+        self.drawingToolIDs = self.interactableVisualObjects[-48][1].getColor()
         self.drawing = False
         self.brush = None
         self.brushColor = [255,127,0,255]
@@ -106,7 +111,7 @@ class Interface:
         self.brushStrength = 100
         self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
         self.colorPickerTransparency = self.interactableVisualObjects[-49][1].getData()
-        self.colorPickerImage = generateColorPicker(self.colorPickerHue/360,(162,100))
+        self.colorPickerImage = generateColorPicker(self.colorPickerHue/360)
 
         pass
 
@@ -224,19 +229,23 @@ class Interface:
             section = self.interactableVisualObjects[self.interacting][0]
             if section == "s": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 20, self.my - 20)
-                self.interactableVisualObjects[self.interacting][1].keepInFrame(1024,658)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(0,0,1024,658)
             if section == "t": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 20)
-                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,179)
-            if section == "c": 
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(0,0,288,179)
+            if section == "c" and self.interactableVisualObjects[self.interacting][1].type != "movable color": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 212)
-                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,155)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(0,0,288,155)
             if section == "l": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 380)
-                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,298)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(0,0,288,298)
             if section == "p": 
                 self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 756, self.my - 20)
-                self.interactableVisualObjects[self.interacting][1].keepInFrame(288,179)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(0,0,288,179)
+            if self.interactableVisualObjects[self.interacting][1].type == "movable color":
+                self.interactableVisualObjects[self.interacting][1].updatePos(self.mx - 1057, self.my - 212)
+                self.interactableVisualObjects[self.interacting][1].keepInFrame(62,20,225,120)
+
         if ((self.mPressed)) and (self.previousInteracting == -999) and (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"): 
             self.stringKeyQueue = self.interactableVisualObjects[self.interacting][1].txt
         if (self.interacting != -999) and (self.interactableVisualObjects[self.interacting][1].type  == "textbox"):
@@ -322,6 +331,7 @@ class Interface:
                 scaledDrawingImage = setSizeSize(scaledDrawingImage, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
             placeOver(total, scaledDrawingImage, (0,0))
         
+        self.regionDataCache[(x,y)] = total
         return total 
 
     def processDrawing(self):
@@ -355,9 +365,14 @@ class Interface:
 
         if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
             # Color Picking
-            self.brushColor = self.l_total[round(rmy*1/SKETCH_QUALITY), round(rmx*1/SKETCH_QUALITY)]
-            self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
+            self.brushColor = self.regionDataCache[(max(0, min(rmx // 128, 8-1)), max(0, min(rmy // 96, 7-1)))][rmy % 94, rmx % 128]
+            h, s, v = colorsys.rgb_to_hsv(self.brushColor[0]/255, self.brushColor[1]/255, self.brushColor[2]/255)
+            self.interactableVisualObjects[-50][1].setData(h*100) # Hue
+            self.interactableVisualObjects[-49][1].setData(self.brushColor[3]) # Transparency
+            self.interactableVisualObjects[-48][1].updatePos(round(s*163),round((1-v)*100)) # Saturation and Value
+            self.interactableVisualObjects[-48][1].setColor(self.brushColor)
 
+            self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
 
     def processPopUp(self, im):
         '''Pop Up Area: `(756,20) to (1043,198)`: size `(288,179)`'''
@@ -434,9 +449,9 @@ class Interface:
         if self.colorPickerHue != self.interactableVisualObjects[-50][1].getData() or self.colorPickerTransparency != self.interactableVisualObjects[-49][1].getData():
             self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
             self.colorPickerTransparency = self.interactableVisualObjects[-49][1].getData()
-            self.colorPickerImage = generateColorPicker(self.colorPickerHue/360,(162,100))
-            print(self.colorPickerHue)
+            self.colorPickerImage = generateColorPicker(self.colorPickerHue/360)
 
+        placeOver(img,  RAINBOW_COLOR_PICKER, (237,20))
         placeOver(img, self.colorPickerImage, (62,20))
 
         for id in self.interactableVisualObjects:

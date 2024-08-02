@@ -61,6 +61,11 @@ VERSION = "v0.0.0-really really early in development"
 ICON_SPACING = lambda x,y: (6+43*x, 6+43*y)
 
 ALL_REGIONS = [(x,y) for x in range(8) for y in range(7)]
+
+from subsystems.simplefancy import generateRainbowColorPicker
+
+RAINBOW_COLOR_PICKER = generateRainbowColorPicker()
+
 # Imagery
 LOADING_IMAGE = Image.open(os.path.join("resources", "loading.png")).convert("RGBA") # 1366x697, Solid, Loading Screen
 LOADING_IMAGE_ARRAY = numpy.array(LOADING_IMAGE)

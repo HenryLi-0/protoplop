@@ -19,8 +19,11 @@ from settings import *
 
 # print(ALL_REGIONS)
 
-from subsystems.simplefancy import generateColorPicker
-Image.fromarray(generateColorPicker(0.7,(162,100))).show()
+# from subsystems.simplefancy import generateColorPicker
+# Image.fromarray(generateColorPicker(0.1,(162,100))).show()
+
+from subsystems.simplefancy import generateRainbowColorPicker
+Image.fromarray(generateRainbowColorPicker()).show()
 
 '''taken from window.py'''
         # timer = 0

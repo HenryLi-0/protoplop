@@ -74,10 +74,17 @@ def generateCircle(radius, color):
                 array[y,x] = (0,0,0,0)
     return array
 
-def generateColorPicker(hue, shape = (10,10)):
+def generateColorPicker(hue, shape = (163,100)):
     array = numpy.empty((shape[1], shape[0], 4), dtype=numpy.uint8)
     for y in range(shape[1]):
         for x in range(shape[0]):
            r,g,b = colorsys.hsv_to_rgb(hue,x/shape[0],1-y/shape[1])
            array[y,x] = (int(r*255), int(g*255), int(b*255), 255)
+    return array
+
+def generateRainbowColorPicker(shape = (10,100)):
+    array = numpy.empty((shape[1], shape[0], 4), dtype=numpy.uint8)
+    for y in range(shape[1]):
+        r,g,b = colorsys.hsv_to_rgb(y/shape[1],1,1)
+        array[y,:] = (int(r*255), int(g*255), int(b*255), 255)
     return array

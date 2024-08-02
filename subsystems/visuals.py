@@ -115,10 +115,10 @@ class OrbVisualObject:
         placeOver(img, displayText(self.name, "m"), self.positionO.getPosition(), True)
     def updatePos(self, rmx, rmy):
         self.positionO.setPosition((rmx, rmy))
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((max(0,min(pos[0],maxX)), max(0,min(pos[1],maxY))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
 
@@ -134,34 +134,13 @@ class ButtonVisualObject:
         placeOver(img, self.img2 if active else self.img, self.positionO.getPosition(), False)
     def updatePos(self, rmx, rmy):
         pass
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((max(0,min(pos[0],maxX)), max(0,min(pos[1],maxY))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
     def getInteractable(self,rmx,rmy):
         return self.positionO.getInteract(rmx, rmy)
-    
-class IconVisualObject:
-    '''An icon, basically a fancy button.'''
-    # generateIcon(img, active = False, size = (29,29), color = "")
-    def __init__(self, name, pos:tuple|list, icon:numpy.ndarray, size:tuple|list = (29,29)):
-        self.type = "icon"
-        self.name = name
-        self.img = generateIcon(icon, False, size)
-        self.img2 = generateIcon(icon, True, size)
-        self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
-    def tick(self, img, active):
-        placeOver(img, self.img2 if active else self.img, self.positionO.getPosition(), False)
-        if active: placeOver(img, displayText(self.name, "s", (0,0,0,200)), self.positionO.getPosition(), False)
-    def updatePos(self, rmx, rmy):
-        pass
-    def keepInFrame(self, maxX, maxY):
-        pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((max(0,min(pos[0],maxX)), max(0,min(pos[1],maxY))))
-    def getInteractable(self,rmx,rmy):
-        return self.positionO.getInteract(rmx, rmy)
-    
+
 class EditableTextBoxVisualObject:
     '''An editable text box.'''
     def __init__(self, name, pos:tuple|list, startTxt= ""):
@@ -180,10 +159,10 @@ class EditableTextBoxVisualObject:
             self.positionO.setBBOX((max(self.txtImg.shape[1]+3,10),max(self.txtImg.shape[0],23)))
     def updatePos(self, rmx, rmy):
         pass
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((max(0,min(pos[0],maxX)), max(0,min(pos[1],maxY))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
     def getInteractable(self,rmx,rmy):
         return self.positionO.getInteract(rmx, rmy)
     
@@ -202,6 +181,27 @@ class DummyVisualObject:
         pass
     def getInteractable(self,rmx,rmy):
         return False
+
+class IconVisualObject:
+    '''An icon, basically a fancy button.'''
+    # generateIcon(img, active = False, size = (29,29), color = "")
+    def __init__(self, name, pos:tuple|list, icon:numpy.ndarray, size:tuple|list = (29,29)):
+        self.type = "icon"
+        self.name = name
+        self.img = generateIcon(icon, False, size)
+        self.img2 = generateIcon(icon, True, size)
+        self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
+    def tick(self, img, active):
+        placeOver(img, self.img2 if active else self.img, self.positionO.getPosition(), False)
+        if active: placeOver(img, displayText(self.name, "s", (0,0,0,200)), self.positionO.getPosition(), False)
+    def updatePos(self, rmx, rmy):
+        pass
+    def keepInFrame(self, minX, minY, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
+    def getInteractable(self,rmx,rmy):
+        return self.positionO.getInteract(rmx, rmy)
 
 class PointVisualObject:
     '''A smaller movable point OFFSET BY X29,Y242 FOR GRAPH. MEANT FOR THE GRAPH AND THE GRAPH ONLY.'''
@@ -224,10 +224,10 @@ class PointVisualObject:
         self.positionO.setPosition((rmx, rmy))
     def setPointData(self, data):
         self.pointData = data
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((round(max(minX,min(pos[0],maxX))), round(max(minY,min(pos[1],maxY)))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
 
@@ -258,10 +258,10 @@ class HorizontalSliderVisualObject:
         self.updatePos(self.originalPos[0] + (extent-self.sliderRange[0])/self.displayScalar*self.length, 0)
     def updatePos(self, rmx, rmy):
         self.positionO.setX(max(self.originalPos[0], min(rmx, self.originalPos[0] + self.length)))
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((round(max(minX,min(pos[0],maxX))), round(max(minY,min(pos[1],maxY)))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
     
@@ -292,15 +292,15 @@ class VerticalSliderVisualObject:
         self.updatePos(0, self.originalPos[1] + (extent-self.sliderRange[0])/self.displayScalar*self.length)
     def updatePos(self, rmx, rmy):
         self.positionO.setY(max(self.originalPos[1], min(rmy, self.originalPos[1] + self.length)))
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((round(max(minX,min(pos[0],maxX))), round(max(minY,min(pos[1],maxY)))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
 
 class ColorVisualObject:
-    '''Just a circle that shows a color!'''
+    '''Just a circle that shows a color, but the one that doesn't move!'''
     def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), radius = 10, color = (0,0,0,255)):
         self.type = "color"
         self.name = name
@@ -319,14 +319,46 @@ class ColorVisualObject:
     def setColor(self, color):
         self.color = color
         self.circleOff = generateCircle(self.radius, FRAME_COLOR_RGBA)
-        placeOver(self.circleOff, generateCircle(self.radius-2, color))
+        placeOver(self.circleOff, generateCircle(self.radius-2, color), (self.radius, self.radius), True)
         self.circleOn  = generateCircle(self.radius, SELECTED_COLOR_RGBA)
-        placeOver(self.circleOn , generateCircle(self.radius-2, color))
+        placeOver(self.circleOn , generateCircle(self.radius-2, color), (self.radius, self.radius), True)
     def updatePos(self, rmx, rmy):
         pass
-    def keepInFrame(self, maxX, maxY):
+    def keepInFrame(self, minX, minY, maxX, maxY):
         pos = self.positionO.getPosition()
-        if pos[0] < 0 or maxX < pos[0] or pos[1] < 0 or maxY < pos[1]:
-            self.positionO.setPosition((round(max(0,min(pos[0],maxX))), round(max(0,min(pos[1],maxY)))))
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((round(max(minX,min(pos[0],maxX))), round(max(minY,min(pos[1],maxY)))))
+    def getInteractable(self, rmx, rmy):
+        return self.positionO.getInteract(rmx, rmy)
+    
+class MovableColorVisualObject:
+    '''Just a circle that shows a color, but the one that can move! FOR COLOR PICKING ONLY!!!'''
+    def __init__(self, name, pos:tuple|list=(random.randrange(0,20), random.randrange(0,20)), radius = 10, color = (0,0,0,255)):
+        self.type = "movable color"
+        self.name = name
+        self.positionO = CircularPositionalBox(radius)
+        self.positionO.setPosition(addP(pos, (radius,radius)))
+        self.radius = radius
+        self.color = color
+        self.circleOff = generateCircle(radius, FRAME_COLOR_RGBA)
+        placeOver(self.circleOff, generateCircle(radius-2, color), (radius, radius), True)
+        self.circleOn  = generateCircle(radius, SELECTED_COLOR_RGBA)
+        placeOver(self.circleOn , generateCircle(radius-2, color), (radius, radius), True)
+    def tick(self, img, active):
+        placeOver(img, self.circleOn if active else self.circleOff, self.positionO.getPosition(), True)
+    def getColor(self):
+        return self.color
+    def setColor(self, color):
+        self.color = color
+        self.circleOff = generateCircle(self.radius, FRAME_COLOR_RGBA)
+        placeOver(self.circleOff, generateCircle(self.radius-2, color), (self.radius, self.radius), True)
+        self.circleOn  = generateCircle(self.radius, SELECTED_COLOR_RGBA)
+        placeOver(self.circleOn , generateCircle(self.radius-2, color), (self.radius, self.radius), True)
+    def updatePos(self, rmx, rmy):
+        self.positionO.setPosition((rmx, rmy))
+    def keepInFrame(self, minX, minY, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((round(max(minX,min(pos[0],maxX))), round(max(minY,min(pos[1],maxY)))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
