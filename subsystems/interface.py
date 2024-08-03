@@ -103,10 +103,10 @@ class Interface:
         for region in ALL_REGIONS:
             self.regionDataCache[region] = EMPTY_IMAGE_ARRAY.copy()
         '''Drawing and Brushes'''
-        self.drawingToolIDs = self.interactableVisualObjects[-48][1].getColor()
+        self.drawingToolIDs = [-97, -96, -95, -80]
         self.drawing = False
         self.brush = None
-        self.brushColor = [255,127,0,255]
+        self.brushColor = self.interactableVisualObjects[-48][1].getColor()
         self.brushSize = 1
         self.brushStrength = 100
         self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
@@ -283,11 +283,6 @@ class Interface:
             if self.interactableVisualObjects[id][0] == "s":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
 
-        tempPath = []
-        for id in self.interactableVisualObjects: 
-            if self.interactableVisualObjects[id][1].type == "orb": 
-                tempPath.append(self.interactableVisualObjects[id][1].positionO.getPosition())
-
         img = setSizeSizeBlur(img, (1024, 658))
         return img
     
@@ -367,9 +362,9 @@ class Interface:
             # Color Picking
             self.brushColor = self.regionDataCache[(max(0, min(rmx // 128, 8-1)), max(0, min(rmy // 96, 7-1)))][rmy % 94, rmx % 128]
             h, s, v = colorsys.rgb_to_hsv(self.brushColor[0]/255, self.brushColor[1]/255, self.brushColor[2]/255)
-            self.interactableVisualObjects[-50][1].setData(h*100) # Hue
+            self.interactableVisualObjects[-50][1].setData(h*360) # Hue
             self.interactableVisualObjects[-49][1].setData(self.brushColor[3]) # Transparency
-            self.interactableVisualObjects[-48][1].updatePos(round(s*163),round((1-v)*100)) # Saturation and Value
+            self.interactableVisualObjects[-48][1].updatePos(round(s*163)+62,round((1-v)*100)+20) # Saturation and Value
             self.interactableVisualObjects[-48][1].setColor(self.brushColor)
 
             self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
@@ -446,10 +441,22 @@ class Interface:
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
         img = im.copy()
 
+        regenerateColorPicker = False
         if self.colorPickerHue != self.interactableVisualObjects[-50][1].getData() or self.colorPickerTransparency != self.interactableVisualObjects[-49][1].getData():
             self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
             self.colorPickerTransparency = self.interactableVisualObjects[-49][1].getData()
             self.colorPickerImage = generateColorPicker(self.colorPickerHue/360)
+            regenerateColorPicker = True
+
+        if self.interacting == -48 or regenerateColorPicker:
+            h = self.colorPickerHue/360
+            s, v = addP(self.interactableVisualObjects[-48][1].positionO.getPosition(), (-62,-20))
+            s = s/163
+            v = 1-(v/100)
+            r, g, b = colorsys.hsv_to_rgb(h, s, v)
+            self.brushColor = [round(r*255), round(g*255), round(b*255), self.colorPickerTransparency/100*255]
+
+            self.interactableVisualObjects[-48][1].setColor(self.brushColor[:3] + [255,])
 
         placeOver(img,  RAINBOW_COLOR_PICKER, (237,20))
         placeOver(img, self.colorPickerImage, (62,20))

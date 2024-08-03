@@ -22,8 +22,15 @@ from settings import *
 # from subsystems.simplefancy import generateColorPicker
 # Image.fromarray(generateColorPicker(0.1,(162,100))).show()
 
-from subsystems.simplefancy import generateRainbowColorPicker
-Image.fromarray(generateRainbowColorPicker()).show()
+# from subsystems.simplefancy import generateRainbowColorPicker
+# Image.fromarray(generateRainbowColorPicker()).show()
+
+import colorsys
+h = 0
+s = 1
+v = 1
+r, g, b = colorsys.hsv_to_rgb(h, s, v)
+print([round(r*255), round(g*255), round(b*255), 255])
 
 '''taken from window.py'''
         # timer = 0

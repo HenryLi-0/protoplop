@@ -95,10 +95,11 @@ class Window:
         self.window.after(TICK_MS, self.windowProcesses)
 
     def windowOccasionalProcesses(self):
-        '''window processes that happen less frequently (once every 3 seconds)'''
+        '''window processes that happen less frequently (once every 5 seconds)'''
         print("windowOccaionalProcess")
         self.window.title(f"Protoplop")
         print(self.getFPS())
+        self.interface.scheduleAllRegions()
         self.window.after(OCCASIONAL_TICK_MS, self.windowOccasionalProcesses)
 
     def windowStartupProcesses(self):
