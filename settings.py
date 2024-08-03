@@ -56,7 +56,7 @@ import numpy
 from subsystems.simplefancy import *
 
 # Version
-VERSION = "v0.0.0-really really early in development"
+VERSION = "v0.0.0-demo"
 
 ICON_SPACING = lambda x,y: (6+43*x, 6+43*y)
 
