@@ -63,6 +63,8 @@ class Interface:
             -50 : ["c", VerticalSliderVisualObject("Hue", (232,20), 100, [0,360])],
             -49 : ["c", VerticalSliderVisualObject("Transparency", (260,20), 100, [100,0])],
             -48 : ["c", MovableColorVisualObject("Color Picker", (62-10,120-10), 10, [0,0,0,255])],
+            -47 : ["c", ColorVisualObject("Brush Color", (14, 20), 18, (  0,  0,  0,255))],
+            -46 : ["c", ColorVisualObject( "Back Color", (14, 56), 18, (255,255,255,255))],
         }
         '''Control'''
         self.interacting = -999
@@ -106,7 +108,10 @@ class Interface:
         self.drawingToolIDs = [-97, -96, -95, -80]
         self.drawing = False
         self.brush = None
-        self.brushColor = self.interactableVisualObjects[-48][1].getColor()
+        self.brushColor = self.interactableVisualObjects[-47][1].getColor()
+        self.backColor = self.interactableVisualObjects[-46][1].getColor()
+        self.modifyingColor = -47 # -47 is brush, -46 is back
+        self.pastBrushColors = [(255,255,255,255) for i in range(10)]
         self.brushSize = 1
         self.brushStrength = 100
         self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
@@ -116,6 +121,7 @@ class Interface:
         pass
 
     def tick(self,mx,my,mPressed,fps,keyQueue,mouseScroll):
+        self.consoleAlerts.append(f"{self.modifyingColor} - {self.brushColor}, {self.backColor}")
         '''Entire Screen: `(0,0) to (1365,697)`: size `(1366,698)`'''
         self.prevmx = self.mx
         self.prevmy = self.my
@@ -191,8 +197,6 @@ class Interface:
             
 
         self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
-
-        self.consoleAlerts.append(f"{self.ticks} - self.cameraPos: {self.cameraPos}")
 
         self.selectedLayer = max(1,min(self.selectedLayer,len(self.layers)-2))
         pass
@@ -360,12 +364,16 @@ class Interface:
 
         if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
             # Color Picking
-            self.brushColor = self.regionDataCache[(max(0, min(rmx // 128, 8-1)), max(0, min(rmy // 96, 7-1)))][rmy % 94, rmx % 128]
-            h, s, v = colorsys.rgb_to_hsv(self.brushColor[0]/255, self.brushColor[1]/255, self.brushColor[2]/255)
+            temp = self.regionDataCache[(max(0, min(rmx // 128, 8-1)), max(0, min(rmy // 96, 7-1)))][rmy % 94, rmx % 128]
+            h, s, v = colorsys.rgb_to_hsv(temp[0]/255, temp[1]/255, temp[2]/255)
             self.interactableVisualObjects[-50][1].setData(h*360) # Hue
-            self.interactableVisualObjects[-49][1].setData(self.brushColor[3]) # Transparency
+            self.interactableVisualObjects[-49][1].setData(temp[3]) # Transparency
             self.interactableVisualObjects[-48][1].updatePos(round(s*163)+62,round((1-v)*100)+20) # Saturation and Value
-            self.interactableVisualObjects[-48][1].setColor(self.brushColor)
+            self.interactableVisualObjects[-48][1].setColor(temp)
+            self.interactableVisualObjects[self.modifyingColor][1].setColor(temp)
+            if self.modifyingColor == -47: self.brushColor = temp
+            elif self.modifyingColor == -46: self.backColor = temp
+            else: pass
 
             self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
 
@@ -441,6 +449,11 @@ class Interface:
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
         img = im.copy()
 
+        if self.interacting in [-47, -46]: 
+            theFutureModifyingColor = self.interacting
+        else:
+            theFutureModifyingColor = self.modifyingColor
+
         regenerateColorPicker = False
         if self.colorPickerHue != self.interactableVisualObjects[-50][1].getData() or self.colorPickerTransparency != self.interactableVisualObjects[-49][1].getData():
             self.colorPickerHue = self.interactableVisualObjects[-50][1].getData()
@@ -448,22 +461,49 @@ class Interface:
             self.colorPickerImage = generateColorPicker(self.colorPickerHue/360)
             regenerateColorPicker = True
 
+        if self.previousInteracting == -48 and self.interacting != -48:
+            regenerateColorPicker = True
         if self.interacting == -48 or regenerateColorPicker:
             h = self.colorPickerHue/360
             s, v = addP(self.interactableVisualObjects[-48][1].positionO.getPosition(), (-62,-20))
             s = s/163
             v = 1-(v/100)
             r, g, b = colorsys.hsv_to_rgb(h, s, v)
-            self.brushColor = [round(r*255), round(g*255), round(b*255), self.colorPickerTransparency/100*255]
+            temp = [round(r*255), round(g*255), round(b*255), self.colorPickerTransparency/100*255]
+            self.interactableVisualObjects[-48][1].setColor(temp[:3] + [255,])
+            self.interactableVisualObjects[self.modifyingColor][1].setColor(temp)
+            if self.modifyingColor == -47: self.brushColor = temp
+            elif self.modifyingColor == -46: self.backColor = temp
+            else: pass
+            self.consoleAlerts.append(f"an editing color was updated! {self.modifyingColor}, the future sees {theFutureModifyingColor}")
+        if self.previousInteracting == -995 or theFutureModifyingColor != self.modifyingColor:
+            if (not self.brushColor in self.pastBrushColors) or (not self.backColor in self.pastBrushColors):
+                if not self.brushColor in self.pastBrushColors: self.pastBrushColors.append(self.brushColor)
+                if not  self.backColor in self.pastBrushColors: self.pastBrushColors.append( self.backColor)
+                if len(self.pastBrushColors) > 10:
+                    self.pastBrushColors = self.pastBrushColors[len(self.pastBrushColors)-10:]
+                for i in range(10):
+                    self.interactableVisualObjects[-79+i][1].setColor(self.pastBrushColors[i])
+        if -79 <= self.interacting <= -70 or self.interacting in [-47, -46]:
+            temp = self.interactableVisualObjects[self.interacting][1].getColor()
+            h, s, v = colorsys.rgb_to_hsv(temp[0]/255, temp[1]/255, temp[2]/255)
+            self.interactableVisualObjects[-50][1].setData(h*360) # Hue
+            self.interactableVisualObjects[-49][1].setData(temp[3]) # Transparency
+            self.interactableVisualObjects[-48][1].updatePos(round(s*163)+62,round((1-v)*100)+20) # Saturation and Value
+            self.interactableVisualObjects[-48][1].setColor(temp)
+            self.interactableVisualObjects[theFutureModifyingColor][1].setColor(temp)
+            if theFutureModifyingColor == -47: self.brushColor = temp
+            elif theFutureModifyingColor == -46: self.backColor = temp
+            else: pass
 
-            self.interactableVisualObjects[-48][1].setColor(self.brushColor[:3] + [255,])
+        if self.interacting in [-47, -46]: self.modifyingColor = self.interacting
 
         placeOver(img,  RAINBOW_COLOR_PICKER, (237,20))
         placeOver(img, self.colorPickerImage, (62,20))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "c":
-                self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+                self.interactableVisualObjects[id][1].tick(img, self.interacting==id or self.modifyingColor==id)
         
         return img
 
@@ -496,8 +536,6 @@ class Interface:
     def scheduleRegionGivenBrush(self, rmx, rmy, t):
         cornerA = (max(0, min(math.floor((rmx-t)/128), 8-1)), max(0, min(math.floor((rmy-t)/96), 7-1)))
         cornerB = (max(0, min(math.floor((rmx+t)/128), 8-1)), max(0, min(math.floor((rmy+t)/96), 7-1)))
-        self.consoleAlerts.append(f"cornerA {cornerA}")
-        self.consoleAlerts.append(f"cornerB {cornerB}")
         for ix in range(cornerB[0]-cornerA[0]+2):
             for iy in range(cornerB[1]-cornerA[1]+2):
                 self.scheduleRegion((cornerA[0]+ix, cornerA[1]+iy))
