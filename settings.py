@@ -42,11 +42,11 @@ PATH_SAVE_DEFAULT = os.path.join("tapes")
 FORMAT_TIME = lambda x: time.strftime("%I:%M:%S %p %m/%d/%Y", time.localtime(x))
 
 '''Keybinds'''
-KB_IGNORE = ["Win_L"]
-KB_ZOOM   = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("space" in keys)
-KB_FOCUS  = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("F" in keys or "f" in keys)
-KB_DELETE = ["S", "s"]
-
+KB_IGNORE    = ["Win_L"]                                                                                # Keys to ignore
+KB_ZOOM      = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("space" in keys)            # Zooming
+KB_FOCUS     = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("F" in keys or "f" in keys) # Center Screen
+KB_L_MV_UP   = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Up" in keys)                   # Move Selected Layer Up
+KB_L_MV_DOWN = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Down" in keys)                 # Move Selected Layer Down
 
 '''Constants - DO NOT CHANGE!!!'''
 '''Do not change these constants. Some are probably important. Some are used for testing purposes. 

@@ -93,7 +93,14 @@ class Interface:
         self.layers = [
             self.blankLayer.copy(),
             LOADING_IMAGE_ARRAY, 
+            LOADING_IMAGE_ARRAY, 
             self.blankLayer.copy()
+        ]
+        self.layerNames = [
+            "Blank",
+            "Layer",
+            "sus",
+            "Blank"
         ]
         self.selectedLayer = 1
         self.l_belowLayer   = self.blankLayer.copy()
@@ -170,6 +177,24 @@ class Interface:
                 self.updateSketchLayers = True
                 self.scheduleAllRegions()
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
+            if KB_L_MV_UP(keyQueue):
+                '''MOVE LAYER UP: CTRL + UP'''
+                if len(self.layers) > 3 and self.selectedLayer < len(self.layers)-2:
+                    self.scheduleAllRegions()
+                    temp = self.layers.pop(self.selectedLayer)
+                    temp2 = self.layerNames.pop(self.selectedLayer)
+                    self.selectedLayer += 1
+                    self.layers.insert(self.selectedLayer, temp)
+                    self.layerNames.insert(self.selectedLayer, temp2)
+            if KB_L_MV_DOWN(keyQueue):
+                '''MOVE LAYER DOWN: CTRL + DOWN'''
+                if len(self.layers) > 3 and self.selectedLayer > 1:
+                    self.scheduleAllRegions()
+                    temp = self.layers.pop(self.selectedLayer)
+                    temp2 = self.layerNames.pop(self.selectedLayer)
+                    self.selectedLayer -= 1
+                    self.layers.insert(self.selectedLayer, temp)
+                    self.layerNames.insert(self.selectedLayer, temp2)
 
         self.processDrawing()
 
@@ -420,10 +445,18 @@ class Interface:
                     pass
 
                 if self.selectedTool == -80: # Console
-                    placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s"), (5,164))
                     if len(self.consoleAlerts) > 15: self.consoleAlerts = self.consoleAlerts[-15:]
                     for i in range(len(self.consoleAlerts)):
                         placeOver(img, displayText(f"{self.consoleAlerts[i]}", "s"), (5,i*10))
+                    placeOver(img, displayText(f"sketchZoom is {self.sketchZoom}", "s", colorBG = (0,0,0,100)), (5,164))
+                    placeOver(img, displayText(f"FPS: {self.fps}", "s", colorBG = (0,0,0,100)), (190,5))
+                    placeOver(img, displayText(f"R(S) M Pos:", "s", colorBG = (0,0,0,100)), (190,25))
+                    placeOver(img, displayText(f" | ({self.mx-23}, {self.my-36})", "s", colorBG = (0,0,0,100)), (190,45))
+                    placeOver(img, displayText(f"Mouse Pressed", "s", colorBG = (0,0,0,100), colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (190,65))
+                    placeOver(img, displayText(f"Rising Edge", "s", colorBG = (0,0,0,100), colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (190,85))
+                    placeOver(img, displayText(f"Interacting: {self.interacting}", "s", colorBG = (0,0,0,100)), (190,105))
+                    placeOver(img, displayText(f"stringKeyQueue:", "s", colorBG = (0,0,0,100)), (190,125))
+                    placeOver(img, displayText(f" | {self.stringKeyQueue}", "s", colorBG = (0,0,0,100)), (190,145))
 
             for id in self.interactableVisualObjects:
                 if self.interactableVisualObjects[id][0] == "p":
@@ -431,12 +464,12 @@ class Interface:
             return img
         else:
             return EMPTY_IMAGE_ARRAY
-
     
     def processTools(self, im):
         '''Tools Area: `(1057,20) to (1344,198)`: size `(288,179)`'''
         img = im.copy()
         
+        placeOver(img, displayText(f"FPS: {self.fps}", "m", colorBG = (0,0,0,100)), (190,5))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
@@ -444,7 +477,6 @@ class Interface:
 
         return img
 
-    
     def processColors(self, im):
         '''Colors Area: `(1057,212) to (1344,366)`: size `(288,155)`'''
         img = im.copy()
@@ -511,12 +543,16 @@ class Interface:
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
         img = im.copy()
 
-        placeOver(img, displayText(f"FPS: {self.fps}", "m"), (15,15))
-        placeOver(img, displayText(f"R(S) Mouse Position: ({self.mx-23}, {self.my-36})", "m"), (15,55))
-        placeOver(img, displayText(f"Mouse Pressed: {self.mPressed}", "m", colorTXT = (0,255,0,255) if self.mPressed else (255,0,0,255)), (15,95))
-        placeOver(img, displayText(f"Rising Edge: {self.mRising}", "m", colorTXT = (0,255,0,255) if self.mRising else (255,0,0,255)), (15,135))
-        placeOver(img, displayText(f"Interacting With Element: {self.interacting}", "m"), (15,175))
-        placeOver(img, displayText(f"stringKeyQueue: {self.stringKeyQueue}", "m"), (15,215))
+        for i in range(1, len(self.layers)-1):
+            if i == self.selectedLayer:
+                placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4))
+            placeOver(img, displayText(f"{i}", "m"), (8, 7+50*i))
+            placeOver(img, setLimitedSizeSize(self.layers[i], (60, 34)), (20, 0+50*i))
+            placeOver(img, displayText(f"{self.layerNames[i]}", "m"), (85, 7+50*i))
+            if 7+50*(i+1) > 288:
+                break
+
+
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "l":
