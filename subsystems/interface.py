@@ -92,8 +92,8 @@ class Interface:
         self.blankProcessingLayerSector = generateColorBox((128,94), (0,0,0,0))
         self.layers = [
             self.blankLayer.copy(),
-            LOADING_IMAGE_ARRAY, 
-            LOADING_IMAGE_ARRAY, 
+            LOADING_IMAGE_ARRAY.copy(), 
+            LOADING_IMAGE_ARRAY.copy(), 
             self.blankLayer.copy()
         ]
         self.layerNames = [
@@ -544,11 +544,11 @@ class Interface:
         img = im.copy()
 
         for i in range(1, len(self.layers)-1):
-            if i == self.selectedLayer:
+            if len(self.layers)-i-1 == self.selectedLayer:
                 placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4))
-            placeOver(img, displayText(f"{i}", "m"), (8, 7+50*i))
-            placeOver(img, setLimitedSizeSize(self.layers[i], (60, 34)), (20, 0+50*i))
-            placeOver(img, displayText(f"{self.layerNames[i]}", "m"), (85, 7+50*i))
+            placeOver(img, displayText(f"{len(self.layers)-i-1}", "m"), (8, 7+50*i))
+            placeOver(img, setLimitedSizeSize(self.layers[len(self.layers)-i-1], (60, 34)), (20, 0+50*i))
+            placeOver(img, displayText(f"{self.layerNames[len(self.layers)-i-1]}", "m"), (85, 7+50*i))
             if 7+50*(i+1) > 288:
                 break
 
