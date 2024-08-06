@@ -69,6 +69,8 @@ RAINBOW_COLOR_PICKER = generateRainbowColorPicker()
 # Imagery
 LOADING_IMAGE = Image.open(os.path.join("resources", "loading.png")).convert("RGBA") # 1366x697, Solid, Loading Screen
 LOADING_IMAGE_ARRAY = numpy.array(LOADING_IMAGE)
+EMPTY_LARGE_IMAGE = Image.open(os.path.join("resources", "blank_large.png")).convert("RGBA")
+EMPTY_LARGE_IMAGE_ARRAY = numpy.array(EMPTY_LARGE_IMAGE)
 PLACEHOLDER_IMAGE = Image.open(os.path.join("resources", "placeholder", "placeholder.png")).convert("RGBA")    # 512x512, Solid, [black, white, grey]
 PLACEHOLDER_IMAGE_ARRAY = numpy.array(PLACEHOLDER_IMAGE)
 PLACEHOLDER_IMAGE_2 = Image.open(os.path.join("resources", "placeholder", "placeholder2.png")).convert("RGBA")  # 100x100, Transparent Background [black, white, grey]
@@ -146,3 +148,7 @@ ICON_BUCKET_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "bu
 ICON_EYEDROP_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eyedrop.png")).convert("RGBA"))
 
 ICON_CONSOLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "console.png")).convert("RGBA"))
+ICON_SHOWN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "shown.png")).convert("RGBA"))
+ICON_HIDDEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "hidden.png")).convert("RGBA"))
+ICON_LOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "lock.png")).convert("RGBA"))
+ICON_UNLOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "unlock.png")).convert("RGBA"))

@@ -202,6 +202,35 @@ class IconVisualObject:
             self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
     def getInteractable(self,rmx,rmy):
         return self.positionO.getInteract(rmx, rmy)
+    
+class ToggleVisualObject:
+    '''A toggle, basically a fancy button/icon, but this time with two faces, on and off that switch on rising detection of clicks!'''
+    # generateIcon(img, active = False, size = (29,29), color = "")
+    def __init__(self, name, pos:tuple|list, iconOn:numpy.ndarray, iconOff:numpy.ndarray, size:tuple|list = (29,29)):
+        self.type = "icon"
+        self.name = name
+        self.img = generateIcon(iconOn, False, size)
+        self.img2 = generateIcon(iconOff, False, size)
+        self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
+        self.active = 0
+        self.state = False
+    def tick(self, img, active):
+        if active:
+            self.active +=1
+        else:
+            self.active = 0
+        if self.active == 1:
+            self.state = not(self.state)
+        placeOver(img, self.img2 if self.state else self.img, self.positionO.getPosition(), False)
+        if active: placeOver(img, displayText(self.name, "s", (0,0,0,200)), self.positionO.getPosition(), False)
+    def updatePos(self, rmx, rmy):
+        pass
+    def keepInFrame(self, minX, minY, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
+    def getInteractable(self,rmx,rmy):
+        return self.positionO.getInteract(rmx, rmy)
 
 class PointVisualObject:
     '''A smaller movable point OFFSET BY X29,Y242 FOR GRAPH. MEANT FOR THE GRAPH AND THE GRAPH ONLY.'''

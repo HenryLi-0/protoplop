@@ -60,16 +60,21 @@ class Interface:
             -71 : ["c", ColorVisualObject("past color 1", (1*28+6, 128), 12, (255,255,255,255))],
             -70 : ["c", ColorVisualObject("past color 0", (0*28+6, 128), 12, (255,255,255,255))],
 
-            -50 : ["c", VerticalSliderVisualObject("Hue", (232,20), 100, [0,360])],
+            -50 : ["c", VerticalSliderVisualObject(         "Hue", (232,20), 100, [0,360])],
             -49 : ["c", VerticalSliderVisualObject("Transparency", (260,20), 100, [100,0])],
             -48 : ["c", MovableColorVisualObject("Color Picker", (62-10,120-10), 10, [0,0,0,255])],
             -47 : ["c", ColorVisualObject("Brush Color", (14, 20), 18, (  0,  0,  0,255))],
             -46 : ["c", ColorVisualObject( "Back Color", (14, 56), 18, (255,255,255,255))],
+
+            -30 : ["l", EditableTextBoxVisualObject("Selected Layer Name", (160, 10), "Layer")],
+            -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_SHOWN_ARRAY, ICON_HIDDEN_ARRAY, (15,15))],
+            -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY, ICON_LOCK_ARRAY, (15,15))],
         }
         '''Control'''
         self.interacting = -999
         self.previousInteracting = -999
         self.stringKeyQueue = ""
+        self.previousKeyQueue = []
         self.mouseScroll = 0 
         self.consoleAlerts = []
         '''Tools and Sliders'''
@@ -86,14 +91,13 @@ class Interface:
         self.updateSketchLayers = True
         self.updateSketchRegions = ALL_REGIONS.copy()
         '''Layers'''
-        self.drawingImage = LOADING_IMAGE_ARRAY 
         self.blankLayer = generateColorBox((self.imageSize[0], self.imageSize[1]), (0,0,0,0))
         self.blankProcessingLayer = setSize(self.blankLayer, 100/SKETCH_QUALITY)
         self.blankProcessingLayerSector = generateColorBox((128,94), (0,0,0,0))
         self.layers = [
             self.blankLayer.copy(),
-            LOADING_IMAGE_ARRAY.copy(), 
-            LOADING_IMAGE_ARRAY.copy(), 
+            EMPTY_LARGE_IMAGE_ARRAY.copy(), 
+            EMPTY_LARGE_IMAGE_ARRAY.copy(), 
             self.blankLayer.copy()
         ]
         self.layerNames = [
@@ -103,6 +107,8 @@ class Interface:
             "Blank"
         ]
         self.selectedLayer = 1
+        self.previousSelectedLayer = self.selectedLayer
+        self.layersOffset = 0
         self.l_belowLayer   = self.blankLayer.copy()
         self.l_currentLayer = self.blankLayer.copy()
         self.l_aboveLayer   = self.blankLayer.copy()
@@ -151,16 +157,19 @@ class Interface:
 
         '''Keyboard'''
         for key in keyQueue: 
-            if key in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":
-                self.stringKeyQueue+=key
-            else:
-                if key=="space":
-                    self.stringKeyQueue+=" "
-                if key=="BackSpace":
-                    self.stringKeyQueue=self.stringKeyQueue[0:-1]
-                if key=="Return":
-                    self.interacting = -998
-                    break
+            if not key in self.previousKeyQueue:
+                if key in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":
+                    self.stringKeyQueue+=key
+                else:
+                    if key=="space":
+                        self.stringKeyQueue+=" "
+                    if key=="BackSpace":
+                        if len(self.stringKeyQueue) > 0:
+                            self.stringKeyQueue=self.stringKeyQueue[0:-1]
+                    if key=="Return" or key=="Control_L":
+                        self.interacting = -998
+                        break
+        self.previousKeyQueue = keyQueue.copy()
         if self.interacting == -999 or self.interacting == -997:
             if KB_ZOOM(keyQueue) and self.mPressed:
                 '''ZOOM: CTRL + SPACE + MOUSE_MOVEMENT'''
@@ -286,6 +295,11 @@ class Interface:
                     self.interactableVisualObjects[self.interacting][1].updateText(self.stringKeyQueue)
                 else:
                     self.interactableVisualObjects[self.previousInteracting][1].updateText(self.stringKeyQueue)
+
+        if 1057 <= self.mx and self.mx <= 1344 and 380 <= self.my and self.my <= 677 and self.mPressed and mPressed < 3 and self.interacting == -999:
+            i = len(self.layers)-math.floor(((self.my-380)+self.layersOffset)/50)-1
+            if 1 <= i and i <= len(self.layers)-2:
+                self.selectedLayer = i
 
 
     def processSketch(self, im):
@@ -543,16 +557,20 @@ class Interface:
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
         img = im.copy()
 
+        if self.selectedLayer != self.previousSelectedLayer:
+            self.interactableVisualObjects[-30][1].updateText(self.layerNames[self.selectedLayer])
+            self.previousSelectedLayer = self.selectedLayer
+        else:
+            self.layerNames[self.selectedLayer] = self.interactableVisualObjects[-30][1].txt
+        
         for i in range(1, len(self.layers)-1):
             if len(self.layers)-i-1 == self.selectedLayer:
-                placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4))
-            placeOver(img, displayText(f"{len(self.layers)-i-1}", "m"), (8, 7+50*i))
-            placeOver(img, setLimitedSizeSize(self.layers[len(self.layers)-i-1], (60, 34)), (20, 0+50*i))
-            placeOver(img, displayText(f"{self.layerNames[len(self.layers)-i-1]}", "m"), (85, 7+50*i))
-            if 7+50*(i+1) > 288:
+                placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4-self.layersOffset))
+            placeOver(img, displayText(f"{len(self.layers)-i-1}", "m"), (8, 7+50*i-self.layersOffset))
+            placeOver(img, setLimitedSizeSize(self.layers[len(self.layers)-i-1], (60, 34)), (20, 0+50*i-self.layersOffset))
+            placeOver(img, displayText(f"{self.layerNames[len(self.layers)-i-1]}", "m"), (85, 7+50*i-self.layersOffset))
+            if 7+50*(i+1)-self.layersOffset > 288:
                 break
-
-
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "l":
