@@ -67,8 +67,8 @@ class Interface:
             -46 : ["c", ColorVisualObject( "Back Color", (14, 56), 18, (255,255,255,255))],
 
             -30 : ["l", EditableTextBoxVisualObject("Selected Layer Name", (160, 10), "Layer")],
-            -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_SHOWN_ARRAY, ICON_HIDDEN_ARRAY, (15,15))],
-            -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY, ICON_LOCK_ARRAY, (15,15))],
+            -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_HIDDEN_ARRAY, ICON_SHOWN_ARRAY, (15,15))],
+            -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY,  ICON_LOCK_ARRAY, (15,15))],
         }
         '''Control'''
         self.interacting = -999
@@ -97,17 +97,20 @@ class Interface:
         self.layers = [
             self.blankLayer.copy(),
             EMPTY_LARGE_IMAGE_ARRAY.copy(), 
-            EMPTY_LARGE_IMAGE_ARRAY.copy(), 
             self.blankLayer.copy()
         ]
         self.layerNames = [
             "Blank",
             "Layer",
-            "sus",
             "Blank"
         ]
+        self.layerProperties = [
+            [True, True, "???"],
+            [False, True, "???"],
+            [True, True, "???"]
+        ]
         self.selectedLayer = 1
-        self.previousSelectedLayer = self.selectedLayer
+        self.previousSelectedLayer = -999
         self.layersOffset = 0
         self.l_belowLayer   = self.blankLayer.copy()
         self.l_currentLayer = self.blankLayer.copy()
@@ -360,14 +363,15 @@ class Interface:
         total = self.blankProcessingLayerSector.copy()
 
         for index in range(0, len(self.layers)):
-            if self.sketchZoom < 100: # The entire image is smaller than the screen
-                scaledDrawingImage = setSize(self.layers[index], (self.sketchZoom))
-                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=VOID_COLOR_RGBA)
-                if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
-            else: # The image is in one dimension or another larger than the screen
-                scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
-                scaledDrawingImage = setSizeSize(scaledDrawingImage, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
-            placeOver(total, scaledDrawingImage, (0,0))
+            if self.layerProperties[index][1]:
+                if self.sketchZoom < 100: # The entire image is smaller than the screen
+                    scaledDrawingImage = setSize(self.layers[index], (self.sketchZoom))
+                    scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=VOID_COLOR_RGBA)
+                    if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
+                else: # The image is in one dimension or another larger than the screen
+                    scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
+                    scaledDrawingImage = setSizeSize(scaledDrawingImage, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
+                placeOver(total, scaledDrawingImage, (0,0))
         
         self.regionDataCache[(x,y)] = total
         return total 
@@ -382,24 +386,28 @@ class Interface:
         ty = self.calcScreenToNonZoomedY(rmy)
         ptx = self.calcScreenToNonZoomedX(prevrmx)
         pty = self.calcScreenToNonZoomedY(prevrmy)
-        if (self.interacting == -999 or self.interacting == -995) and (self.selectedTool in self.drawingToolIDs) and (self.mouseInSketchSection) and (self.mRising):
-            self.interacting = -995
-            self.drawing = True
-            self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
-        if self.interacting == -995 and not(self.mPressed):
-            self.interacting = -999
-            self.drawing = False
-        if self.interacting == -995:
-            t = self.brushSize * (self.sketchZoom/100)
-            self.scheduleRegionGivenBrush(rmx, rmy, t)
-            steps = math.ceil(math.sqrt((tx-ptx)**2 + (ty-pty)**2)/self.brushSize)+1
-            i = 0
-            while i <= steps:
-                placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
+        if not(self.layerProperties[self.selectedLayer][0]) and self.layerProperties[self.selectedLayer][1]:
+            if (self.interacting == -999 or self.interacting == -995) and (self.selectedTool in self.drawingToolIDs) and (self.mouseInSketchSection) and (self.mRising):
+                self.interacting = -995
+                self.drawing = True
+                self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
+            if self.interacting == -995 and not(self.mPressed):
+                self.interacting = -999
+                self.drawing = False
+            if self.interacting == -995:
+                t = self.brushSize * (self.sketchZoom/100)
                 self.scheduleRegionGivenBrush(rmx, rmy, t)
-                i+=1
-            self.updateSketchLayers = True
-            self.updateSketch = True
+                steps = math.ceil(math.sqrt((tx-ptx)**2 + (ty-pty)**2)/self.brushSize)+1
+                i = 0
+                while i <= steps:
+                    placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
+                    self.scheduleRegionGivenBrush(rmx, rmy, t)
+                    i+=1
+                self.updateSketchLayers = True
+                self.updateSketch = True
+        else:
+            if self.interacting == -995: self.interacting = -999
+            self.drawing = False
 
         if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
             # Color Picking
@@ -475,6 +483,9 @@ class Interface:
             for id in self.interactableVisualObjects:
                 if self.interactableVisualObjects[id][0] == "p":
                     self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+
+            if SHOW_CROSSHAIR: placeOver(img, CURSOR_SELECT_ARRAY if self.mPressed else CURSOR_ARROW_ARRAY, (self.mx-756, self.my-20), True)
+
             return img
         else:
             return EMPTY_IMAGE_ARRAY
@@ -488,6 +499,8 @@ class Interface:
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id or self.selectedTool==id)
+
+        if SHOW_CROSSHAIR: placeOver(img, CURSOR_SELECT_ARRAY if self.mPressed else CURSOR_ARROW_ARRAY, (self.mx-1057, self.my-20), True)
 
         return img
 
@@ -550,7 +563,9 @@ class Interface:
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "c":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id or self.modifyingColor==id)
-        
+
+        if SHOW_CROSSHAIR: placeOver(img, CURSOR_SELECT_ARRAY if self.mPressed else CURSOR_ARROW_ARRAY, (self.mx-1057, self.my-212), True)
+
         return img
 
     def processLayers(self, im):
@@ -560,21 +575,35 @@ class Interface:
         if self.selectedLayer != self.previousSelectedLayer:
             self.interactableVisualObjects[-30][1].updateText(self.layerNames[self.selectedLayer])
             self.previousSelectedLayer = self.selectedLayer
+            self.interactableVisualObjects[-28][1].state = self.layerProperties[self.selectedLayer][0]
+            self.interactableVisualObjects[-29][1].state = self.layerProperties[self.selectedLayer][1]
         else:
             self.layerNames[self.selectedLayer] = self.interactableVisualObjects[-30][1].txt
+            self.layerProperties[self.selectedLayer][0] = self.interactableVisualObjects[-28][1].state
+            if self.layerProperties[self.selectedLayer][1] != self.interactableVisualObjects[-29][1].state: 
+                self.layerProperties[self.selectedLayer][1] = self.interactableVisualObjects[-29][1].state
+                self.scheduleAllRegions()
         
         for i in range(1, len(self.layers)-1):
-            if len(self.layers)-i-1 == self.selectedLayer:
+            index = len(self.layers)-i-1
+            if index == self.selectedLayer:
                 placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4-self.layersOffset))
-            placeOver(img, displayText(f"{len(self.layers)-i-1}", "m"), (8, 7+50*i-self.layersOffset))
-            placeOver(img, setLimitedSizeSize(self.layers[len(self.layers)-i-1], (60, 34)), (20, 0+50*i-self.layersOffset))
-            placeOver(img, displayText(f"{self.layerNames[len(self.layers)-i-1]}", "m"), (85, 7+50*i-self.layersOffset))
+            placeOver(img, displayText(f"{index}", "m"), (8, 7+50*i-self.layersOffset))
+            placeOver(img, setLimitedSizeSize(self.layers[index], (60, 34)), (20, 0+50*i-self.layersOffset))
+            placeOver(img, displayText(f"{self.layerNames[index]}", "m", colorTXT = (255,255,255,255) if self.layerProperties[index][1] else (155,155,155,255)), (85, 7+50*i-self.layersOffset))
+            if not(self.layerProperties[index][1]):
+                placeOver(img, ICON_HIDDEN_ARRAY, (249, 18+50*i-self.layersOffset))
+            if self.layerProperties[index][0]:
+                placeOver(img,   ICON_LOCK_ARRAY, (267, 18+50*i-self.layersOffset))
+            
             if 7+50*(i+1)-self.layersOffset > 288:
                 break
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "l":
                 self.interactableVisualObjects[id][1].tick(img, self.interacting==id)
+        
+        if SHOW_CROSSHAIR: placeOver(img, CURSOR_SELECT_ARRAY if self.mPressed else CURSOR_ARROW_ARRAY, (self.mx-1057, self.my-380), True)
 
         return img
     

@@ -206,7 +206,7 @@ class IconVisualObject:
 class ToggleVisualObject:
     '''A toggle, basically a fancy button/icon, but this time with two faces, on and off that switch on rising detection of clicks!'''
     # generateIcon(img, active = False, size = (29,29), color = "")
-    def __init__(self, name, pos:tuple|list, iconOn:numpy.ndarray, iconOff:numpy.ndarray, size:tuple|list = (29,29)):
+    def __init__(self, name, pos:tuple|list, iconOn:numpy.ndarray, iconOff:numpy.ndarray, size:tuple|list = (29,29), runOn = lambda: 0, runOff = lambda: 0):
         self.type = "icon"
         self.name = name
         self.img = generateIcon(iconOn, False, size)
@@ -214,6 +214,8 @@ class ToggleVisualObject:
         self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
         self.active = 0
         self.state = False
+        self.runOn = runOn
+        self.runOff = runOff
     def tick(self, img, active):
         if active:
             self.active +=1
@@ -221,8 +223,13 @@ class ToggleVisualObject:
             self.active = 0
         if self.active == 1:
             self.state = not(self.state)
+            if self.state == True: self.runOn()
+            if self.state == False: self.runOff()
         placeOver(img, self.img2 if self.state else self.img, self.positionO.getPosition(), False)
         if active: placeOver(img, displayText(self.name, "s", (0,0,0,200)), self.positionO.getPosition(), False)
+    def setToggle(self, runOn, runOff):
+        self.runOn = runOn
+        self.runOff = runOff
     def updatePos(self, rmx, rmy):
         pass
     def keepInFrame(self, minX, minY, maxX, maxY):
