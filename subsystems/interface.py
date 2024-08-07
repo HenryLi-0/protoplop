@@ -125,7 +125,9 @@ class Interface:
         for region in ALL_REGIONS:
             self.regionDataCache[region] = EMPTY_IMAGE_ARRAY.copy()
         '''Drawing and Brushes'''
-        self.drawingToolIDs = [-97, -96, -95, -80]
+        self.popUpDataIDs = [-97, -96, -95, -80]
+        self.drawingToolsIDs = [-97,-96, -95]
+        self.lastDrawingTool = -999
         self.drawing = False
         self.brush = None
         self.brushColor = self.interactableVisualObjects[-47][1].getColor()
@@ -343,6 +345,8 @@ class Interface:
             if 1 <= i and i <= len(self.layers)-2:
                 self.selectedLayer = i
 
+        if self.selectedTool in self.drawingToolsIDs: self.lastDrawingTool = self.selectedTool
+
 
     def processSketch(self, im):
         '''Sketch Area: `(20,20) to (1043,677)`: size `(1024,658)`'''
@@ -426,10 +430,11 @@ class Interface:
         ptx = self.calcScreenToNonZoomedX(prevrmx)
         pty = self.calcScreenToNonZoomedY(prevrmy)
         if not(self.layerProperties[self.selectedLayer][0]) and self.layerProperties[self.selectedLayer][1]:
-            if (self.interacting == -999 or self.interacting == -995) and (self.selectedTool in self.drawingToolIDs) and (self.mouseInSketchSection) and (self.mRising):
-                self.interacting = -995
-                self.drawing = True
-                self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
+            if (self.interacting == -999 or self.interacting == -995) and (self.mouseInSketchSection) and (self.mRising):
+                if self.selectedTool in self.drawingToolsIDs:
+                    self.interacting = -995
+                    self.drawing = True
+                    self.regenerateBrush(self.lastDrawingTool)
             if self.interacting == -995 and not(self.mPressed):
                 self.interacting = -999
                 self.drawing = False
@@ -439,7 +444,8 @@ class Interface:
                 steps = math.ceil(math.sqrt((tx-ptx)**2 + (ty-pty)**2)/self.brushSize)+1
                 i = 0
                 while i <= steps:
-                    placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
+                    if self.selectedTool in self.drawingToolsIDs:
+                        placeOver(self.layers[self.selectedLayer], self.brush, (ptx + round(i*(tx - ptx)/steps), pty + round(i*(ty - pty)/steps)), True)
                     self.scheduleRegionGivenBrush(rmx, rmy, t)
                     i+=1
                 self.updateSketchLayers = True
@@ -465,7 +471,7 @@ class Interface:
 
     def processPopUp(self, im):
         '''Pop Up Area: `(756,20) to (1043,198)`: size `(288,179)`'''
-        if self.selectedTool in self.drawingToolIDs:
+        if self.selectedTool in self.popUpDataIDs:
             img = im.copy()
             if self.previousSelectedTool != self.selectedTool:
                 self.previousSelectedTool = self.selectedTool
@@ -475,37 +481,68 @@ class Interface:
                         temp.append(id)
                 for id in temp:
                     self.interactableVisualObjects.pop(id)
-                if self.selectedTool == -97: # Paint Brush
+                if self.selectedTool == -97: 
+                    '''Paint Brush'''
                     self.sliders = [self.c.c(), self.c.c()]
                     self.interactableVisualObjects[self.sliders[0]] = ["p", HorizontalSliderVisualObject("Size", (20,55), 248, (1,100))]
                     self.interactableVisualObjects[self.sliders[1]] = ["p", HorizontalSliderVisualObject("Strength", (20,105), 248, (1,100))]
                     self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushSize)
                     self.interactableVisualObjects[self.sliders[1]][1].setData(self.brushStrength)
-                if self.selectedTool == -96: # Pencil
-                    pass
-                if self.selectedTool == -95: # Eraser
-                    pass
+                if self.selectedTool == -96: 
+                    '''Pencil'''
+                    self.sliders = [self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", HorizontalSliderVisualObject("Size", (20,55), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushSize)
+                    self.brushStrength = 100
+                if self.selectedTool == -95: 
+                    '''Eraser'''
+                    self.sliders = [self.c.c(), self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", HorizontalSliderVisualObject("Size", (20,55), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", HorizontalSliderVisualObject("Strength", (20,105), 248, (1,100))]
+                    self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushSize)
+                    self.interactableVisualObjects[self.sliders[1]][1].setData(self.brushStrength)
             else:
-                if self.selectedTool == -97: # Paint Brush
+                if self.selectedTool == -97: 
+                    '''Paint Brush'''
                     placeOver(img, displayText(f"Paint Brush:", "m"), (10,10))
                     placeOver(img, displayText(f"Size: {self.interactableVisualObjects[self.sliders[0]][1].getData()}", "sm"), (10, 35))
                     placeOver(img, displayText(f"Strength: {self.interactableVisualObjects[self.sliders[1]][1].getData()}", "sm"), (10, 85))
                     if self.interacting == -999:
                         temp = [self.interactableVisualObjects[self.sliders[0]][1].getData(), self.interactableVisualObjects[self.sliders[1]][1].getData()]
                         if self.slidersData != temp:
-                            self.brush = generatePaintBrush(temp[0], self.brushColor, temp[1])
                             self.brushSize = temp[0]
                             self.brushStrength = temp[1]
                             self.slidersData = temp
-                            self.consoleAlerts.append(f"{self.ticks} - generated a brush!")
+                            self.regenerateBrush(-97)
                     
-                if self.selectedTool == -96: # Pencil
-                    pass
+                if self.selectedTool == -96: 
+                    '''Pencil'''
+                    placeOver(img, displayText(f"Pencil:", "m"), (10,10))
+                    placeOver(img, displayText(f"Size: {self.interactableVisualObjects[self.sliders[0]][1].getData()}", "sm"), (10, 35))
+                    if self.interacting == -999:
+                        temp = [self.interactableVisualObjects[self.sliders[0]][1].getData()]
+                        if self.slidersData != temp:
+                            self.brush = generatePencilBrush(temp[0], self.brushColor)
+                            self.brushSize = temp[0]
+                            self.slidersData = temp
+                            self.regenerateBrush(-96)
 
-                if self.selectedTool == -95: # Eraser
-                    pass
+                if self.selectedTool == -95:
+                    '''Eraser'''
+                    placeOver(img, displayText(f"Eraser:", "m"), (10,10))
+                    placeOver(img, displayText(f"Size: {self.interactableVisualObjects[self.sliders[0]][1].getData()}", "sm"), (10, 35))
+                    placeOver(img, displayText(f"Strength: {self.interactableVisualObjects[self.sliders[1]][1].getData()}", "sm"), (10, 85))
+                    if self.interacting == -999:
+                        temp = [self.interactableVisualObjects[self.sliders[0]][1].getData(), self.interactableVisualObjects[self.sliders[1]][1].getData()]
+                        if self.slidersData != temp:
+                            self.brush = generatePencilBrush(temp[0], self.brushColor)
+                            self.brushSize = temp[0]
+                            self.brushStrength = temp[1]
+                            self.slidersData = temp
+                            self.regenerateBrush(-95)
 
-                if self.selectedTool == -80: # Console
+                if self.selectedTool == -80: 
+                    '''Console'''
                     if len(self.consoleAlerts) > 15: self.consoleAlerts = self.consoleAlerts[-15:]
                     for i in range(len(self.consoleAlerts)):
                         placeOver(img, displayText(f"{self.consoleAlerts[i]}", "s"), (5,i*10))
@@ -679,6 +716,22 @@ class Interface:
         for region in ALL_REGIONS:
             if region not in self.updateSketchRegions:
                 self.updateSketchRegions.append(region)
+
+    def regenerateBrush(self, tool):
+        if tool == -97: 
+            '''Paint Brush'''
+            self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
+            self.consoleAlerts.append(f"{self.ticks} - generated a paint brush!")
+        elif tool == -96: 
+            '''Pencil'''
+            self.brush = generatePencilBrush(self.brushSize, self.brushColor)
+            self.consoleAlerts.append(f"{self.ticks} - generated a pencil brush!")
+        elif tool == -95: 
+            '''Pencil'''
+            self.brush = generateEraserBrush(self.brushSize, (0,0,0, self.brushStrength))
+            self.consoleAlerts.append(f"{self.ticks} - generated an eraser brush!")
+        return self.brush
+
 
     def saveState(self):
         pass

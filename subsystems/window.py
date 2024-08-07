@@ -78,7 +78,7 @@ class Window:
         self.w_layers.update(arrayToImage(self.interface.processLayers(self.b_layers)))
         self.w_popUp .update(arrayToImage(self.interface.processPopUp (self.b_popUp )))
 
-        if self.interface.selectedTool in self.interface.drawingToolIDs:
+        if self.interface.selectedTool in self.interface.popUpDataIDs:
             if not(self.w_popUp.shown): self.w_popUp.show()
         else:
             if self.w_popUp.shown: self.w_popUp.hide()

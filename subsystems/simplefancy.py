@@ -9,6 +9,12 @@ def generateColorBox(size:list|tuple = (25,25),color:list|tuple = (255,255,255,2
     array[:, :] = color
     return array
 
+def generateUnrestrictedColorBox(size:list|tuple = (25,25),color:list|tuple = (255,255,255,255)):
+    '''Generates a box of (size) size of (color) color without restrictions'''
+    array = numpy.empty((size[1], size[0], 4))
+    array[:, :] = color
+    return array
+
 def generateBorderBox(size:list|tuple = (25,25), outlineW:int = 1, color:list|tuple = (255,255,255,255)):
     '''Generates a bordered box with a transparent inside, with transparent space of (size), and an (outlineW) px thick outline of (color) color surrounding it'''
     array = numpy.zeros((size[1]+2*outlineW, size[0]+2*outlineW, 4), dtype=numpy.uint8)
@@ -56,6 +62,32 @@ def generatePaintBrush(radius, color, strength):
             distance = numpy.sqrt((x-center)**2+(y-center)**2)
             if distance <= radius:
                 array[y,x] = [color[0], color[1], color[2], min(int(color[3]/255 * alpha * (1 - (distance / radius))), 255)]
+            else:
+                array[y,x] = (0,0,0,0)
+    return array
+
+def generatePencilBrush(radius, color):
+    '''Generates a single-colored circle paint brush given the length (length), color (RGBA)'''
+    diameter = radius * 2
+    array = numpy.empty((diameter, diameter, 4), dtype=numpy.uint8)
+    center = radius
+    for y in range(diameter):
+        for x in range(diameter):
+            if numpy.sqrt((x-center)**2+(y-center)**2) <= radius:
+                array[y,x] = color
+            else:
+                array[y,x] = (0,0,0,0)
+    return array
+
+def generateEraserBrush(radius, strength):
+    '''Generates a negative single-colored eraser paint brush given the length (length), strength (0-100, 100 is solid)'''
+    diameter = radius * 2
+    array = numpy.empty((diameter, diameter, 4), dtype=numpy.float64)
+    center = radius
+    for y in range(diameter):
+        for x in range(diameter):
+            if numpy.sqrt((x-center)**2+(y-center)**2) <= radius:
+                array[y,x] = (0,0,0, -round(strength*2.55))
             else:
                 array[y,x] = (0,0,0,0)
     return array

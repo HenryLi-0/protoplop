@@ -25,14 +25,14 @@ from settings import *
 # from subsystems.simplefancy import generateRainbowColorPicker
 # Image.fromarray(generateRainbowColorPicker()).show()
 
-import colorsys
-h = 0
-s = 1
-v = 1
-r, g, b = colorsys.hsv_to_rgb(h, s, v)
-print([round(r*255), round(g*255), round(b*255), 255])
+# import colorsys
+# h = 0
+# s = 1
+# v = 1
+# r, g, b = colorsys.hsv_to_rgb(h, s, v)
+# print([round(r*255), round(g*255), round(b*255), 255])
 
-'''taken from window.py'''
+# '''taken from window.py'''
         # timer = 0
         # for i in range(1000):
         #     start = time.time()
@@ -44,3 +44,9 @@ print([round(r*255), round(g*255), round(b*255), 255])
         # while True:
         #     pass
 
+from subsystems.simplefancy import generateColorBox, generateUnrestrictedColorBox
+from subsystems.render import placeOver
+
+img = generateColorBox((100,100),(255,255,255,255))
+placeOver(img, generateUnrestrictedColorBox((50,50),(0,0,0,-125)), (0,0))
+Image.fromarray(img).show()

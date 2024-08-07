@@ -109,10 +109,17 @@ def placeOver(img1:numpy.ndarray, img2:numpy.ndarray, position:list|tuple, cente
     backgroundRGB = img1[startY:endY, startX:endX, :3]
     alpha_background = img1[startY:endY, startX:endX, 3] / 255.0
 
-    combined_alpha = alpha_overlay + alpha_background * (1 - alpha_overlay)
-    blendedRGB = (overlayRGB*alpha_overlay[:, :, None]+backgroundRGB*(1-alpha_overlay[:, :, None])).astype(numpy.uint8)    
-    img1[startY:endY, startX:endX, :3] = blendedRGB
-    img1[startY:endY, startX:endX, 3] = (combined_alpha * 255).astype(numpy.uint8)
+    if numpy.any(img2[:, :, 3] < 0):
+        alpha_background = img1[startY:endY, startX:endX, 3].astype(numpy.float64)
+        alpha_background += img2[:, :, 3].astype(numpy.float64)
+        alpha_background[alpha_background < 0] = 0
+        alpha_background[alpha_background > 255] = 255
+        img1[startY:endY, startX:endX, 3] = alpha_background.astype(numpy.uint8)
+    else:
+        combined_alpha = alpha_overlay + alpha_background * (1 - alpha_overlay)
+        blendedRGB = (overlayRGB*alpha_overlay[:, :, None]+backgroundRGB*(1-alpha_overlay[:, :, None])).astype(numpy.uint8)    
+        img1[startY:endY, startX:endX, :3] = blendedRGB
+        img1[startY:endY, startX:endX, 3] = (combined_alpha * 255).astype(numpy.uint8)
     
     return True
 
