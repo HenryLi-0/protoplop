@@ -77,6 +77,7 @@ class Interface:
         self.previousKeyQueue = []
         self.mouseScroll = 0 
         self.consoleAlerts = []
+        self.keybindLastUpdate = time.time()
         '''Tools and Sliders'''
         self.selectedTool = -99
         self.previousSelectedTool = self.selectedTool
@@ -137,7 +138,6 @@ class Interface:
         pass
 
     def tick(self,mx,my,mPressed,fps,keyQueue,mouseScroll):
-        self.consoleAlerts.append(f"{self.modifyingColor} - {self.brushColor}, {self.backColor}")
         '''Entire Screen: `(0,0) to (1365,697)`: size `(1366,698)`'''
         self.prevmx = self.mx
         self.prevmy = self.my
@@ -173,9 +173,10 @@ class Interface:
                         self.interacting = -998
                         break
         self.previousKeyQueue = keyQueue.copy()
-        if self.interacting == -999 or self.interacting == -997:
+        if (self.interacting == -999 or self.interacting == -997) and (time.time() - self.keybindLastUpdate > 0.2):
             if KB_ZOOM(keyQueue) and self.mPressed:
                 '''ZOOM: CTRL + SPACE + MOUSE_MOVEMENT'''
+                self.keybindLastUpdate = time.time()
                 if self.interacting == -999 and self.mouseInSketchSection:
                     self.interacting = -997
                     self.interactableVisualObjects[-997][1].data = (mx-20, my-20, self.sketchZoom)
@@ -185,12 +186,14 @@ class Interface:
                     self.sketchZoom = max(1, min(self.sketchZoom, 10000))
             if KB_FOCUS(keyQueue) and self.mRising:
                 '''FOCUS: CTRL + F + Click'''
+                self.keybindLastUpdate = time.time()
                 self.updateSketch = True
                 self.updateSketchLayers = True
                 self.scheduleAllRegions()
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
             if KB_L_MV_UP(keyQueue):
-                '''MOVE LAYER UP: CTRL + UP'''
+                '''MOVE LAYER UP: ALT + UP'''
+                self.keybindLastUpdate = time.time()
                 if len(self.layers) > 3 and self.selectedLayer < len(self.layers)-2:
                     self.scheduleAllRegions()
                     temp = self.layers.pop(self.selectedLayer)
@@ -199,7 +202,8 @@ class Interface:
                     self.layers.insert(self.selectedLayer, temp)
                     self.layerNames.insert(self.selectedLayer, temp2)
             if KB_L_MV_DOWN(keyQueue):
-                '''MOVE LAYER DOWN: CTRL + DOWN'''
+                '''MOVE LAYER DOWN: ALT + DOWN'''
+                self.keybindLastUpdate = time.time()
                 if len(self.layers) > 3 and self.selectedLayer > 1:
                     self.scheduleAllRegions()
                     temp = self.layers.pop(self.selectedLayer)
@@ -207,6 +211,25 @@ class Interface:
                     self.selectedLayer -= 1
                     self.layers.insert(self.selectedLayer, temp)
                     self.layerNames.insert(self.selectedLayer, temp2)
+            if KB_L_NEW(keyQueue):
+                '''CREATE LAYER: ALT + A'''
+                self.keybindLastUpdate = time.time()
+                self.scheduleAllRegions()
+                i = self.selectedLayer
+                if 1057 <= self.mx and self.mx <= 1344 and 380 <= self.my and self.my <= 677:
+                    i = max(0, min(len(self.layers)-round(((self.my-380)+self.layersOffset)/50)-1, len(self.layers)-2))
+                self.layers.insert(i+1, self.blankLayer.copy())
+                self.layerNames.insert(i+1, "Layer")
+                self.layerProperties.insert(i+1, [False, True, "???"])
+            if KB_L_DELETE(keyQueue):
+                '''DELETE LAYER: ALT + S'''
+                self.keybindLastUpdate = time.time()
+                if len(self.layers) > 3:
+                    self.scheduleAllRegions()
+                    self.layers.pop(self.selectedLayer)
+                    self.layerNames.pop(self.selectedLayer)
+                    self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
+
 
         self.processDrawing()
 

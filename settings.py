@@ -49,6 +49,8 @@ KB_ZOOM      = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("spa
 KB_FOCUS     = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("F" in keys or "f" in keys) # Center Screen
 KB_L_MV_UP   = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Up" in keys)                   # Move Selected Layer Up
 KB_L_MV_DOWN = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Down" in keys)                 # Move Selected Layer Down
+KB_L_NEW     = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("A" in keys or "a" in keys)     # Create a new layer
+KB_L_DELETE  = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("S" in keys or "s" in keys)     # Delete a layer
 
 '''Constants - DO NOT CHANGE!!!'''
 '''Do not change these constants. Some are probably important. Some are used for testing purposes. 
