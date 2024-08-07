@@ -28,5 +28,5 @@ def generateIcon(img, active = False, size = (29,29), color = ""):
     icon = generateColorBox((size[0]+6,size[1]+6),hexColorToRGBA(BACKGROUND_COLOR))
     if color == "": placeOver(icon, generateBorderBox(size,3, hexColorToRGBA(SELECTED_COLOR if active else FRAME_COLOR)), (0,0))
     else: placeOver(icon, generateBorderBox(size,3, hexColorToRGBA(color)), (0,0))
-    placeOver(icon, img, (round((size[0]+6)/2),round((size[1]+6)/2)), True)
+    placeOver(icon, img, (3,3))
     return icon

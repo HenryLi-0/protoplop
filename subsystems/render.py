@@ -161,6 +161,7 @@ def setColorEffect(img: numpy.ndarray, colorEffect):
 
 def setTransparency(img: numpy.ndarray, transparency):
     '''Returns a copy of the given image with transparency multiplied, given the transparency value (given 0-100, 0 = clear, 100 = normal)'''
+    if transparency == 100: return img
     imgc = img.copy()
     imgMask = imgc[:, :, 3] * (transparency/100)
     imgc[:, :, 3] = imgMask

@@ -588,8 +588,8 @@ class Interface:
             index = len(self.layers)-i-1
             if index == self.selectedLayer:
                 placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4-self.layersOffset))
-            placeOver(img, displayText(f"{index}", "m"), (8, 7+50*i-self.layersOffset))
-            placeOver(img, setLimitedSizeSize(self.layers[index], (60, 34)), (20, 0+50*i-self.layersOffset))
+            placeOver(img, displayText(f"{index}", "m", colorTXT = (255,155,155,255) if self.layerProperties[index][0] else (255,255,255,255)), (8, 7+50*i-self.layersOffset))
+            placeOver(img, setTransparency(setLimitedSizeSize(self.layers[index], (60, 34)), 100 if self.layerProperties[index][1] else 50), (20, 0+50*i-self.layersOffset))
             placeOver(img, displayText(f"{self.layerNames[index]}", "m", colorTXT = (255,255,255,255) if self.layerProperties[index][1] else (155,155,155,255)), (85, 7+50*i-self.layersOffset))
             if not(self.layerProperties[index][1]):
                 placeOver(img, ICON_HIDDEN_ARRAY, (249, 18+50*i-self.layersOffset))
@@ -625,13 +625,15 @@ class Interface:
         
     def scheduleRegionGivenPixel(self, pixel):
         region = (max(0, min(pixel[0] // 128, 8-1)), max(0, min(pixel[1] // 96, 7-1)))
-        if region not in self.updateSketchRegions:
-            self.updateSketchRegions.append(region)
+        if region in self.updateSketchRegions:
+            self.updateSketchRegions.remove(region)
+        self.updateSketchRegions.append(region)
 
     def scheduleRegion(self, region):
         safeRegion = (max(0, min(region[0], 8-1)), max(0, min(region[1], 7-1)))
-        if safeRegion not in self.updateSketchRegions:
-            self.updateSketchRegions.append(safeRegion)
+        if safeRegion in self.updateSketchRegions:
+            self.updateSketchRegions.remove(safeRegion)
+        self.updateSketchRegions.append(safeRegion)
 
     def scheduleAllRegions(self):
         for region in ALL_REGIONS:
