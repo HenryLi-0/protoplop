@@ -9,7 +9,6 @@ Here are the parts:
 - Constants (Please do not change!)
 '''
 
-
 '''Calculation'''
 FLOAT_ACCURACY = 3 #This is how many digits after the decimal point things will generally round to
 
@@ -152,3 +151,5 @@ ICON_SHOWN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "sho
 ICON_HIDDEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "hidden.png")).convert("RGBA"))
 ICON_LOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "lock.png")).convert("RGBA"))
 ICON_UNLOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "unlock.png")).convert("RGBA"))
+ICON_PLUS_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "plus.png")).convert("RGBA"))
+ICON_TRASHCAN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "trashcan.png")).convert("RGBA"))

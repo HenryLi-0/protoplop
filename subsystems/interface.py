@@ -69,6 +69,8 @@ class Interface:
             -30 : ["l", EditableTextBoxVisualObject("Selected Layer Name", (160, 10), "Layer")],
             -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_HIDDEN_ARRAY, ICON_SHOWN_ARRAY, (15,15))],
             -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY,  ICON_LOCK_ARRAY, (15,15))],
+            -21 : ["l", IconVisualObject(   "New Layer", (239,273),     ICON_PLUS_ARRAY, (15,15))],
+            -20 : ["l", IconVisualObject("Delete Layer", (263,273), ICON_TRASHCAN_ARRAY, (15,15))],
         }
         '''Control'''
         self.interacting = -999
@@ -113,6 +115,7 @@ class Interface:
         self.selectedLayer = 1
         self.previousSelectedLayer = -999
         self.layersOffset = 0
+        self.numberOfLayers = len(self.layers)
         self.l_belowLayer   = self.blankLayer.copy()
         self.l_currentLayer = self.blankLayer.copy()
         self.l_aboveLayer   = self.blankLayer.copy()
@@ -155,8 +158,22 @@ class Interface:
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
 
-        if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
-            print("button press")
+        # if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
+        #     print("button press")
+        if self.interacting == -21 and mPressed < 3: 
+            '''Create Layer'''
+            self.scheduleAllRegions()
+            self.layers.insert(self.selectedLayer+1, self.blankLayer.copy())
+            self.layerNames.insert(self.selectedLayer+1, "Layer")
+            self.layerProperties.insert(self.selectedLayer+1, [False, True, "???"])
+        if self.interacting == -20 and mPressed < 3:
+            '''Delete Layer'''
+            if len(self.layers) > 3:
+                self.scheduleAllRegions()
+                self.layers.pop(self.selectedLayer)
+                self.layerNames.pop(self.selectedLayer)
+                self.layerProperties.pop(self.selectedLayer)
+                self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
 
         '''Keyboard'''
         for key in keyQueue: 
@@ -216,7 +233,7 @@ class Interface:
                 self.keybindLastUpdate = time.time()
                 self.scheduleAllRegions()
                 i = self.selectedLayer
-                if 1057 <= self.mx and self.mx <= 1344 and 380 <= self.my and self.my <= 677:
+                if self.mouseInLayersSection:
                     i = max(0, min(len(self.layers)-round(((self.my-380)+self.layersOffset)/50)-1, len(self.layers)-2))
                 self.layers.insert(i+1, self.blankLayer.copy())
                 self.layerNames.insert(i+1, "Layer")
@@ -228,6 +245,7 @@ class Interface:
                     self.scheduleAllRegions()
                     self.layers.pop(self.selectedLayer)
                     self.layerNames.pop(self.selectedLayer)
+                    self.layerProperties.pop(self.selectedLayer)
                     self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
 
 
@@ -245,15 +263,13 @@ class Interface:
                 temp = self.interactableVisualObjects[-996][1].data
                 self.sketchZoom -= self.mouseScroll/10
                 self.sketchZoom = max(1, min(self.sketchZoom, 10000))
-
         else:
             if self.interacting == -996: self.interacting = -999
-        # if abs(self.mouseScroll) > 0:
-        #     self.sketchZoom -= self.mouseScroll/10
-        #     if self.sketchZoom < 1: self.sketchZoom = 1
-        #     if self.sketchZoom > 10000: self.sketchZoom = 10000
-        #     self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
-        #     self.updateSketch = True
+
+        if abs(self.mouseScroll) > 0:
+            if self.mouseInLayersSection:
+                self.layersOffset += self.mouseScroll/10
+                self.layersOffset = max(0, min(round(self.layersOffset), 50*(len(self.layers)-7)))
             
 
         self.sketchZoomMulScaled = self.sketchZoomMul*self.sketchZoom
@@ -595,9 +611,10 @@ class Interface:
         '''Layers Area: `(1057,380) to (1344,677)`: size `(288,298)`'''
         img = im.copy()
 
-        if self.selectedLayer != self.previousSelectedLayer:
+        if self.selectedLayer != self.previousSelectedLayer or len(self.layers) != self.numberOfLayers:
             self.interactableVisualObjects[-30][1].updateText(self.layerNames[self.selectedLayer])
             self.previousSelectedLayer = self.selectedLayer
+            self.numberOfLayers = len(self.layers)
             self.interactableVisualObjects[-28][1].state = self.layerProperties[self.selectedLayer][0]
             self.interactableVisualObjects[-29][1].state = self.layerProperties[self.selectedLayer][1]
         else:
