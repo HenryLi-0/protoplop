@@ -728,7 +728,7 @@ class Interface:
             self.consoleAlerts.append(f"{self.ticks} - generated a pencil brush!")
         elif tool == -95: 
             '''Pencil'''
-            self.brush = generateEraserBrush(self.brushSize, (0,0,0, self.brushStrength))
+            self.brush = generateEraserBrush(self.brushSize, self.brushStrength)
             self.consoleAlerts.append(f"{self.ticks} - generated an eraser brush!")
         return self.brush
 
