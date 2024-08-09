@@ -17,7 +17,7 @@ def generateUnrestrictedColorBox(size:list|tuple = (25,25),color:list|tuple = (2
 
 def generateMask(size:list|tuple = (25,25),transparency:int = 255):
     '''Generates a mask of (size) size of (transparency) transparency'''
-    array = numpy.empty((size[1], size[0], 4), dtype=numpy.uint8)
+    array = numpy.empty((size[1], size[0]), dtype=numpy.uint8)
     array[:, :] = transparency
     return array
 

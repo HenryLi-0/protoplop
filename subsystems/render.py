@@ -166,12 +166,20 @@ def placeOverMask(mask:numpy.ndarray, img2:numpy.ndarray, position:list|tuple, c
     endY = math.floor(min(position[1]+img2H, img1H))
 
     img2 = img2[round(max(-position[1], 0)):round((max(-position[1], 0)+(endY-startY))), round(max(-position[0], 0)):round((max(-position[0], 0)+(endX-startX)))]
+    alpha_values = img2[:, :, 3].astype(numpy.float32) / 255.0
+    mask_slice = mask[startY:endY, startX:endX]
+    mask[startY:endY, startX:endX] = mask_slice * (1 - alpha_values)
 
-    alpha = mask[startY:endY, startX:endX].astype(numpy.float64)
-    alpha *= (img2[:, :, 0].astype(numpy.float64)/255)
-    mask[startY:endY, startX:endX] = alpha.astype(numpy.uint8)
-    
     return True
+
+def maskToImage(mask: numpy.ndarray):
+    y, x= mask.shape
+    img = numpy.empty((y, x, 4), dtype=numpy.uint8)
+    img[:,:,0] = mask
+    img[:,:,1] = mask
+    img[:,:,2] = mask
+    img[:,:,3] = 255
+    return img
 
 def rotateDeg(img: numpy.ndarray, degrees:float):
     '''Returns an array of a rotated version of the given image by (degrees) degrees, using the 0 up CCW rotation system'''

@@ -69,8 +69,9 @@ class Interface:
             -30 : ["l", EditableTextBoxVisualObject("Selected Layer Name", (160, 10), "Layer")],
             -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_HIDDEN_ARRAY, ICON_SHOWN_ARRAY, (15,15))],
             -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY,  ICON_LOCK_ARRAY, (15,15))],
-            -21 : ["l", IconVisualObject(   "New Layer", (239,273),     ICON_PLUS_ARRAY, (15,15))],
-            -20 : ["l", IconVisualObject("Delete Layer", (263,273), ICON_TRASHCAN_ARRAY, (15,15))],
+            -22 : ["l", IconVisualObject(  "Layer Mask", (215,273), ICON_LAYERMASK_ARRAY, (15,15))],
+            -21 : ["l", IconVisualObject(   "New Layer", (239,273),      ICON_PLUS_ARRAY, (15,15))],
+            -20 : ["l", IconVisualObject("Delete Layer", (263,273),  ICON_TRASHCAN_ARRAY, (15,15))],
         }
         '''Control'''
         self.interacting = -999
@@ -185,6 +186,10 @@ class Interface:
                 self.layerNames.pop(self.selectedLayer)
                 self.layerProperties.pop(self.selectedLayer)
                 self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
+        if self.interacting == -22 and mPressed < 3:
+            '''Layer Mask'''
+            self.editingMask = not(self.editingMask)
+
 
         '''Keyboard'''
         for key in keyQueue: 
@@ -702,12 +707,16 @@ class Interface:
                 self.scheduleAllRegions()
         
         for i in range(1, len(self.layers)-1):
+            xOffset = 0
             index = len(self.layers)-i-1
             if index == self.selectedLayer:
                 placeOver(img, generateColorBox((282,40), FRAME_COLOR_RGBA), (3,50*i-4-self.layersOffset))
-            placeOver(img, displayText(f"{index}", "m", colorTXT = (255,155,155,255) if self.layerProperties[index][0] else (255,255,255,255)), (8, 7+50*i-self.layersOffset))
-            placeOver(img, setTransparency(setLimitedSizeSize(self.layers[index], (60, 34)), 100 if self.layerProperties[index][1] else 50), (20, 0+50*i-self.layersOffset))
-            placeOver(img, displayText(f"{self.layerNames[index]}", "m", colorTXT = (255,255,255,255) if self.layerProperties[index][1] else (155,155,155,255)), (85, 7+50*i-self.layersOffset))
+            placeOver(img, displayText(f"{index}", "m", colorTXT = (255,155,155,255) if self.layerProperties[index][0] else (255,255,255,255)), (8 + xOffset, 7+50*i-self.layersOffset))
+            placeOver(img, setTransparency(setLimitedSizeSize(self.layers[index], (60, 34)), 100 if self.layerProperties[index][1] else 50), (20 + xOffset, 0+50*i-self.layersOffset))
+            if not(type(self.layerProperties[index][2]) == str):
+                placeOver(img, setTransparency(setLimitedSizeSize(maskToImage(self.layerProperties[index][2]), (60, 34)), 100 if self.layerProperties[index][1] else 50), (84 + xOffset, 0+50*i-self.layersOffset))
+                xOffset = 65
+            placeOver(img, displayText(f"{self.layerNames[index]}", "m", colorTXT = (255,255,255,255) if self.layerProperties[index][1] else (155,155,155,255)), (85 + xOffset, 7+50*i-self.layersOffset))
             if not(self.layerProperties[index][1]):
                 placeOver(img, ICON_HIDDEN_ARRAY, (249, 18+50*i-self.layersOffset))
             if self.layerProperties[index][0]:
@@ -777,13 +786,17 @@ class Interface:
             if type(self.layerProperties[layer][2]) == str:
                 self.processedLayers[layer] = self.layers[layer].copy()
             else:
-                self.processedLayers[layer] = applyMask(self.layers[layer].copy(), self.layerProperties[layer][2])
+                temp = self.layers[layer].copy()
+                applyMask(temp, self.layerProperties[layer][2])
+                self.processedLayers[layer] = temp
         else:
             for i in range(1, len(self.layers) - 1):
                 if type(self.layerProperties[i][2]) == str:
                     self.processedLayers[i] = self.layers[i].copy()
                 else:
-                    self.processedLayers[i] = applyMask(self.layers[i].copy(), self.layerProperties[i][2])
+                    temp = self.layers[i].copy()
+                    applyMask(temp, self.layerProperties[i][2])
+                    self.processedLayers[i] = temp
 
     def saveState(self):
         pass

@@ -153,3 +153,4 @@ ICON_LOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "lock
 ICON_UNLOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "unlock.png")).convert("RGBA"))
 ICON_PLUS_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "plus.png")).convert("RGBA"))
 ICON_TRASHCAN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "trashcan.png")).convert("RGBA"))
+ICON_LAYERMASK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "layermask.png")).convert("RGBA"))
