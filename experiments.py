@@ -45,8 +45,9 @@ from settings import *
         #     pass
 
 from subsystems.simplefancy import generateColorBox, generateUnrestrictedColorBox
-from subsystems.render import placeOver
+from subsystems.render import applyMask
 
-img = generateColorBox((100,100),(255,255,255,255))
-placeOver(img, generateUnrestrictedColorBox((50,50),(0,0,0,-125)), (0,0))
-Image.fromarray(img).show()
+mask = numpy.ones([100,100], dtype=numpy.uint8)
+mask *= 25
+applyMask(PLACEHOLDER_IMAGE_2_ARRAY, mask)
+Image.fromarray(PLACEHOLDER_IMAGE_2_ARRAY).show()

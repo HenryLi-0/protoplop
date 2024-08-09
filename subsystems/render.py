@@ -81,7 +81,6 @@ def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|l
     area = imgC[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
     return area
 
-
 def merge(img1:Image.Image|numpy.ndarray, img2:Image.Image|numpy.ndarray):
     '''Returns an array of the average of the values of two given images/numpy arrays as a numpy array'''
     img1 = numpy.array(img1)
@@ -136,6 +135,43 @@ def dPlaceOver(img1:numpy.ndarray, img2: numpy.ndarray, position:list|tuple):
         except:
             '''So, you really messed up... told you it was dangerous...'''
             pass
+
+def grabAlpha(img):
+    '''Grabs the alpha channel of an image, then converts it into a grayscale non-transparent image'''
+    imgC = numpy.zeros(img.shape, dtype=numpy.uint8)
+    imgC[:,:,0] = img[:,:,3]
+    imgC[:,:,1] = img[:,:,3]
+    imgC[:,:,2] = img[:,:,3]
+    imgC[:,:,3] = 255
+    return imgC
+
+def applyMask(img1:numpy.ndarray, mask: numpy.ndarray):
+    '''Modifies img1 with transparency mask (range 0-255, 255 being solid, 0 being transparent) of shape (y,x) applied to it'''
+    alpha = img1[:,:,3].astype(numpy.float64)
+    alpha *= (mask[:,:].astype(numpy.float64)/255)
+    img1[:,:,3] = alpha.astype(numpy.uint8)
+
+def placeOverMask(mask:numpy.ndarray, img2:numpy.ndarray, position:list|tuple, center = False):
+    '''Modifies mask as an array of image 2 (overlay) placed on top of mask (background), given as numpy arrays'''
+    if center: position = (round(position[0]-img2.shape[1]*0.5),round(position[1]-img2.shape[0]*0.5))
+    img1H, img1W = mask.shape[:2] 
+    img2H, img2W = img2.shape[:2]
+
+    if position[1]>img1H or -position[1]>img2H: return False
+    if position[0]>img1W or -position[0]>img2W: return False
+    
+    startX = math.floor(max(position[0], 0))
+    startY = math.floor(max(position[1], 0))
+    endX = math.floor(min(position[0]+img2W, img1W))
+    endY = math.floor(min(position[1]+img2H, img1H))
+
+    img2 = img2[round(max(-position[1], 0)):round((max(-position[1], 0)+(endY-startY))), round(max(-position[0], 0)):round((max(-position[0], 0)+(endX-startX)))]
+
+    alpha = mask[startY:endY, startX:endX].astype(numpy.float64)
+    alpha *= (img2[:, :, 0].astype(numpy.float64)/255)
+    mask[startY:endY, startX:endX] = alpha.astype(numpy.uint8)
+    
+    return True
 
 def rotateDeg(img: numpy.ndarray, degrees:float):
     '''Returns an array of a rotated version of the given image by (degrees) degrees, using the 0 up CCW rotation system'''

@@ -15,6 +15,12 @@ def generateUnrestrictedColorBox(size:list|tuple = (25,25),color:list|tuple = (2
     array[:, :] = color
     return array
 
+def generateMask(size:list|tuple = (25,25),transparency:int = 255):
+    '''Generates a mask of (size) size of (transparency) transparency'''
+    array = numpy.empty((size[1], size[0], 4), dtype=numpy.uint8)
+    array[:, :] = transparency
+    return array
+
 def generateBorderBox(size:list|tuple = (25,25), outlineW:int = 1, color:list|tuple = (255,255,255,255)):
     '''Generates a bordered box with a transparent inside, with transparent space of (size), and an (outlineW) px thick outline of (color) color surrounding it'''
     array = numpy.zeros((size[1]+2*outlineW, size[0]+2*outlineW, 4), dtype=numpy.uint8)
