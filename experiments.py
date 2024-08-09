@@ -50,4 +50,5 @@ from subsystems.render import applyMask
 mask = numpy.ones([100,100], dtype=numpy.uint8)
 mask *= 25
 applyMask(PLACEHOLDER_IMAGE_2_ARRAY, mask)
-Image.fromarray(PLACEHOLDER_IMAGE_2_ARRAY).show()
+# Image.fromarray(mask).show()
+print(numpy.array(Image.fromarray(mask).resize((50, 50), Image.Resampling.NEAREST)).shape)

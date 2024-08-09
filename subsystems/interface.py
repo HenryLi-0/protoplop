@@ -104,11 +104,6 @@ class Interface:
             EMPTY_LARGE_IMAGE_ARRAY.copy(), 
             self.blankLayer.copy()
         ]
-        self.processedLayers = [
-            self.blankLayer.copy(),
-            EMPTY_LARGE_IMAGE_ARRAY.copy(), 
-            self.blankLayer.copy()
-        ]
         self.layerNames = [
             "Blank",
             "Layer",
@@ -174,7 +169,6 @@ class Interface:
             '''Create Layer'''
             self.scheduleAllRegions()
             self.layers.insert(self.selectedLayer+1, self.blankLayer.copy())
-            self.processedLayers.insert(self.selectedLayer+1, self.blankLayer.copy())
             self.layerNames.insert(self.selectedLayer+1, "Layer")
             self.layerProperties.insert(self.selectedLayer+1, [False, True, "???"])
         if self.interacting == -20 and mPressed < 3:
@@ -182,7 +176,6 @@ class Interface:
             if len(self.layers) > 3:
                 self.scheduleAllRegions()
                 self.layers.pop(self.selectedLayer)
-                self.processedLayers.pop(self.selectedLayer)
                 self.layerNames.pop(self.selectedLayer)
                 self.layerProperties.pop(self.selectedLayer)
                 self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
@@ -231,13 +224,11 @@ class Interface:
                     self.scheduleAllRegions()
                     temp = self.layers.pop(self.selectedLayer)
                     temp2 = self.layerNames.pop(self.selectedLayer)
-                    temp3 = self.processedLayers.pop(self.selectedLayer)
-                    temp4 = self.layerProperties.pop(self.selectedLayer)
+                    temp3 = self.layerProperties.pop(self.selectedLayer)
                     self.selectedLayer += 1
                     self.layers.insert(self.selectedLayer, temp)
                     self.layerNames.insert(self.selectedLayer, temp2)
-                    self.processedLayers.insert(self.selectedLayer, temp3)
-                    self.layerProperties.insert(self.selectedLayer, temp4)
+                    self.layerProperties.insert(self.selectedLayer, temp3)
             if KB_L_MV_DOWN(keyQueue):
                 '''MOVE LAYER DOWN: ALT + DOWN'''
                 self.keybindLastUpdate = time.time()
@@ -245,13 +236,11 @@ class Interface:
                     self.scheduleAllRegions()
                     temp = self.layers.pop(self.selectedLayer)
                     temp2 = self.layerNames.pop(self.selectedLayer)
-                    temp3 = self.processedLayers.pop(self.selectedLayer)
-                    temp4 = self.layerProperties.pop(self.selectedLayer)
+                    temp3 = self.layerProperties.pop(self.selectedLayer)
                     self.selectedLayer -= 1
                     self.layers.insert(self.selectedLayer, temp)
                     self.layerNames.insert(self.selectedLayer, temp2)
-                    self.processedLayers.insert(self.selectedLayer, temp3)
-                    self.layerProperties.insert(self.selectedLayer, temp4)
+                    self.layerProperties.insert(self.selectedLayer, temp3)
             if KB_L_NEW(keyQueue):
                 '''CREATE LAYER: ALT + A'''
                 self.keybindLastUpdate = time.time()
@@ -262,7 +251,6 @@ class Interface:
                 self.layers.insert(i+1, self.blankLayer.copy())
                 self.layerNames.insert(i+1, "Layer")
                 self.layerProperties.insert(i+1, [False, True, "???"])
-                self.processedLayers.insert(i+1, self.blankLayer.copy())
             if KB_L_DELETE(keyQueue):
                 '''DELETE LAYER: ALT + S'''
                 self.keybindLastUpdate = time.time()
@@ -271,7 +259,6 @@ class Interface:
                     self.layers.pop(self.selectedLayer)
                     self.layerNames.pop(self.selectedLayer)
                     self.layerProperties.pop(self.selectedLayer)
-                    self.processedLayers.pop(self.selectedLayer)
                     self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
 
 
@@ -426,18 +413,26 @@ class Interface:
     
     def processFetchSketchSector(self, x, y):
         '''128x94'''
-        self.selectedLayer = max(1,min(self.selectedLayer,len(self.processedLayers)-2))
+        self.selectedLayer = max(1,min(self.selectedLayer,len(self.layers)-2))
         total = self.blankProcessingLayerSector.copy()
 
         for index in range(0, len(self.layers)):
             if self.layerProperties[index][1]:
                 if self.sketchZoom < 100: # The entire image is smaller than the screen
-                    scaledDrawingImage = setSize(self.processedLayers[index], (self.sketchZoom))
+                    scaledDrawingImage = setSize(self.layers[index], self.sketchZoom)
                     scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=VOID_COLOR_RGBA)
+                    if type(self.layerProperties[index][2]) != str:
+                        scaledDrawingMask  = setSize(self.layerProperties[index][2], self.sketchZoom)
+                        scaledDrawingMask  = getRegion(scaledDrawingMask, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=0, thirdaxis=False)
+                        applyMask(scaledDrawingImage, scaledDrawingMask)
                     if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
                 else: # The image is in one dimension or another larger than the screen
-                    scaledDrawingImage = getRegion(self.processedLayers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
+                    scaledDrawingImage = getRegion(self.layers[index], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
                     scaledDrawingImage = setSizeSize(scaledDrawingImage, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
+                    if type(self.layerProperties[index][2]) != str:
+                        scaledDrawingMask  = getRegion(self.layerProperties[index][2], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=0, thirdaxis=False)
+                        scaledDrawingMask  = setSizeSize(scaledDrawingMask, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
+                        applyMask(scaledDrawingImage, scaledDrawingMask)
                 placeOver(total, scaledDrawingImage, (0,0))
         
         self.regionDataCache[(x,y)] = total
@@ -494,7 +489,6 @@ class Interface:
                 self.updateSketch = True
             else:
                 pass      
-            self.processProcessedLayers(self.selectedLayer)
         else:
             if self.interacting == -995: self.interacting = -999
             self.drawing = False
@@ -780,23 +774,6 @@ class Interface:
             self.brush = generateEraserBrush(self.brushSize, self.brushStrength)
             self.consoleAlerts.append(f"{self.ticks} - generated an eraser brush!")
         return self.brush
-    
-    def processProcessedLayers(self, layer):
-        if 1 <= layer <= len(self.layers) - 2:
-            if type(self.layerProperties[layer][2]) == str:
-                self.processedLayers[layer] = self.layers[layer].copy()
-            else:
-                temp = self.layers[layer].copy()
-                applyMask(temp, self.layerProperties[layer][2])
-                self.processedLayers[layer] = temp
-        else:
-            for i in range(1, len(self.layers) - 1):
-                if type(self.layerProperties[i][2]) == str:
-                    self.processedLayers[i] = self.layers[i].copy()
-                else:
-                    temp = self.layers[i].copy()
-                    applyMask(temp, self.layerProperties[i][2])
-                    self.processedLayers[i] = temp
 
     def saveState(self):
         pass

@@ -30,53 +30,54 @@ def clip(img:Image.Image|numpy.ndarray, cliplen: int, direction: str):
     elif direction == "W": return img[:, :-cliplen, :]
     else: return img
 
-def addBlank(img:Image.Image|numpy.ndarray, add: int, direction: str, color = (0,0,0,0)):
+def addBlank(img:Image.Image|numpy.ndarray, add: int, direction: str, color = (0,0,0,0), thirdaxis = True):
     '''Returns the image with added add "empty" pixels in a given direction'''
     img = numpy.array(img)
-    y, x, _ = img.shape
+    y, x = img.shape[:2]
     if direction == 'N': 
-        temp = numpy.zeros((add, x, 4), dtype=img.dtype)
+        temp = numpy.zeros((add, x, 4) if thirdaxis else (add, x), dtype=img.dtype)
         temp[:,:] = color
         return numpy.vstack((temp, img))
     elif direction == 'S': 
-        temp = numpy.zeros((add, x, 4), dtype=img.dtype)
+        temp = numpy.zeros((add, x, 4) if thirdaxis else (add, x), dtype=img.dtype)
         temp[:,:] = color
         return numpy.vstack((img, temp))
     elif direction == 'E': 
-        temp = numpy.zeros((y, add, 4), dtype=img.dtype)
+        temp = numpy.zeros((y, add, 4) if thirdaxis else (y, add), dtype=img.dtype)
         temp[:,:] = color
         return numpy.hstack((img, temp))
     elif direction == 'W': 
-        temp = numpy.zeros((y, add, 4), dtype=img.dtype)
+        temp = numpy.zeros((y, add, 4) if thirdaxis else (y, add), dtype=img.dtype)
         temp[:,:] = color
         return numpy.hstack((temp, img))
     else: return img
 
-def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|list, exact = 2, color = (0,0,0,0)):
+def getRegion(img:Image.Image|numpy.ndarray, cornerA:tuple|list, cornerB:tuple|list, exact = 2, color = (0,0,0,0), thirdaxis = True):
     '''Returns a region of an image, given two coordinates relative to (0,0) of the image'''
     imgC = img
-    y, x, _ = img.shape
+    if thirdaxis: y, x, _ = img.shape
+    else: y, x = img.shape
     pointA = [round(min(cornerA[0], cornerB[0])), round(min(cornerA[1], cornerB[1]))]
     pointB = [round(max(cornerA[0], cornerB[0])), round(max(cornerA[1], cornerB[1]))]
     if exact > 0:
         if pointA[0] < 0:
             add = abs(pointA[0])
-            imgC = addBlank(imgC, add, "W", color)
+            imgC = addBlank(imgC, add, "W", color, thirdaxis)
             pointA[0] += add 
             pointB[0] += add
         if pointA[1] < 0:
             add = abs(pointA[1])
-            imgC = addBlank(imgC, add, "N", color)
+            imgC = addBlank(imgC, add, "N", color, thirdaxis)
             pointA[1] += add 
             pointB[1] += add
         if exact > 1:
             if x < pointB[0]:
                 add = abs(pointB[0]-x)
-                imgC = addBlank(imgC, add, "E", color)
+                imgC = addBlank(imgC, add, "E", color, thirdaxis)
                 pointB[0] += add
             if y < pointB[1]:
                 add = abs(pointB[1]-y)
-                imgC = addBlank(imgC, add, "S", color)
+                imgC = addBlank(imgC, add, "S", color, thirdaxis)
                 pointB[1] += add
     area = imgC[round(pointA[1]):round(pointB[1]+1), round(pointA[0]):round(pointB[0]+1)]
     return area
@@ -192,17 +193,15 @@ def rotateDegHundred(img: numpy.ndarray, cent:float):
 
 def setSize(img: numpy.ndarray, size):
     '''Returns a copy of the given image scaled by size, given the size change (given with 100 as normal, >100 scale up, <100 scale down)'''
-    y, x, temp = img.shape
+    y, x = img.shape[:2]
     return numpy.array(Image.fromarray(img).resize((max(1, (round(x*(size/100)))),max(1, round(y*(size/100)))),Image.Resampling.NEAREST))
 
 def setSizeSize(img: numpy.ndarray, size):
     '''Returns a copy of the given image with set size size, given the exact target sizes'''
-    y, x, temp = img.shape
     return numpy.array(Image.fromarray(img).resize((size[0], size[1]), Image.Resampling.NEAREST))
 
 def setSizeSizeBlur(img: numpy.ndarray, size):
     '''Returns a copy of the given image with set size size, given the exact target sizes, resampling is hamming!'''
-    y, x, temp = img.shape
     return numpy.array(Image.fromarray(img).resize((size[0], size[1]), Image.Resampling.HAMMING))
 
 def setColorEffect(img: numpy.ndarray, colorEffect):
