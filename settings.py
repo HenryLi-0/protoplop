@@ -19,6 +19,7 @@ OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it run
 
 SKETCH_QUALITY = 1 # The display quality of the sketch SHOWN computationally. 1 is the highsst, the greater you go, the more pixelated it gets
 SKETCH_MAX_REGIONS = 5 # The maximum allowed regions of the sketch screen (total 48) allowed to be updated per call to update
+SKETCH_MAX_REGIONS_TIME = 0.1 # The maximum allowed time to spend on region updates per tick
 
 SHOW_CROSSHAIR = True # Shows a crosshair for the mouse's position, meant for touch-screen based drawing use
 

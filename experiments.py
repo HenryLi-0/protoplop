@@ -44,11 +44,60 @@ from settings import *
         # while True:
         #     pass
 
-from subsystems.simplefancy import generateColorBox, generateUnrestrictedColorBox
-from subsystems.render import applyMask
+# from subsystems.simplefancy import generateColorBox, generateUnrestrictedColorBox
+# from subsystems.render import applyMask
 
-mask = numpy.ones([100,100], dtype=numpy.uint8)
-mask *= 25
-applyMask(PLACEHOLDER_IMAGE_2_ARRAY, mask)
-# Image.fromarray(mask).show()
-print(numpy.array(Image.fromarray(mask).resize((50, 50), Image.Resampling.NEAREST)).shape)
+# mask = numpy.ones([100,100], dtype=numpy.uint8)
+# mask *= 25
+# applyMask(PLACEHOLDER_IMAGE_2_ARRAY, mask)
+# # Image.fromarray(mask).show()
+# print(numpy.array(Image.fromarray(mask).resize((50, 50), Image.Resampling.NEAREST)).shape)
+
+
+
+def fill(image:numpy.ndarray, pixel:tuple|list, color:tuple|list, tolerance:int):
+    target_color = image[pixel[1], pixel[0]]
+    fill_color = numpy.array(color)
+    images = []
+    
+    mask = numpy.zeros(image.shape[:2], dtype=bool)
+    mask[pixel[1], pixel[0]] = True
+
+    i=0
+    while True:
+        expanded_mask = numpy.zeros_like(mask)
+        
+        expanded_mask[:-1, :] |= mask[1:, :]
+        expanded_mask[1:, :] |= mask[:-1, :]
+        expanded_mask[:, :-1] |= mask[:, 1:]
+        expanded_mask[:, 1:] |= mask[:, :-1]
+        
+        color_diff = numpy.abs(image[:, :, :] - target_color)
+        within_tolerance = numpy.all(color_diff <= tolerance, axis=2)
+
+        new_mask = expanded_mask & within_tolerance & ~mask
+
+        if not numpy.any(new_mask):
+            break
+
+        mask |= new_mask
+        print(f"los skibidos {i}")
+        i+=1
+        imageC = image.copy()
+        imageC[mask] = color
+        if i%5==0: images.append(Image.fromarray(imageC))
+
+    imageC = image.copy()
+    imageC[mask] = color
+    images.append(Image.fromarray(imageC))
+
+    print("saving")
+    images[0].save("C:/Users/henry/Desktop/Projects/GitHub Repositories/protoplop/test.gif", format='gif', append_images=images[1:], save_all=True, duration=1000/50, loop=0)
+
+    
+    image[mask] = color
+    
+    return image
+
+
+Image.fromarray(fill(PLACEHOLDER_IMAGE_ARRAY, (50,65), (255,127,0,255), 0)).show()
