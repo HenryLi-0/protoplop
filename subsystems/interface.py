@@ -47,7 +47,8 @@ class Interface:
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
 
-            -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(1,3), ICON_CONSOLE_ARRAY, (33,33))],
+            -81 : ["t", IconVisualObject("Save (Layer)", ICON_SPACING(5,2),    ICON_SAVE_ARRAY, (33,33))],
+            -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(5,3), ICON_CONSOLE_ARRAY, (33,33))],
 
             -79 : ["c", ColorVisualObject("past color 9", (9*28+6, 128), 12, (255,255,255,255))],
             -78 : ["c", ColorVisualObject("past color 8", (8*28+6, 128), 12, (255,255,255,255))],
@@ -128,7 +129,7 @@ class Interface:
         for region in ALL_REGIONS:
             self.regionDataCache[region] = EMPTY_IMAGE_ARRAY.copy()
         '''Drawing and Brushes'''
-        self.popUpDataIDs = [-97, -96, -95, -80]
+        self.popUpDataIDs = [-97, -96, -95, -80, -94, -81]
         self.drawingToolsIDs = [-97,-96, -95]
         self.lastDrawingTool = -999
         self.drawing = False
@@ -507,6 +508,11 @@ class Interface:
             else: pass
 
             self.brush = generatePaintBrush(self.brushSize, self.brushColor, self.brushStrength)
+        
+        if self.selectedTool == -94 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
+            # Paint Bucket / Flood Filling
+            fill(self.layers[self.selectedLayer], (round(self.calcScreenToNonZoomedX(rmx)), round(self.calcScreenToNonZoomedY(rmy))), self.brushColor, self.brushStrength)
+            self.scheduleAllRegions()
 
     def processPopUp(self, im):
         '''Pop Up Area: `(756,20) to (1043,198)`: size `(288,179)`'''
@@ -540,6 +546,16 @@ class Interface:
                     self.interactableVisualObjects[self.sliders[1]] = ["p", HorizontalSliderVisualObject("Strength", (20,105), 248, (1,100))]
                     self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushSize)
                     self.interactableVisualObjects[self.sliders[1]][1].setData(self.brushStrength)
+                if self.selectedTool == -94: 
+                    '''Paint Bucket'''
+                    self.sliders = [self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", HorizontalSliderVisualObject("Tolerance", (20,55), 248, (0,100))]
+                    self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushStrength)
+                if self.selectedTool == -81: 
+                    '''Saving'''
+                    self.sliders = [self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", CheckboxVisualObject("Flatten", (20,55), (30,30)), True]
+                    
             else:
                 if self.selectedTool == -97: 
                     '''Paint Brush'''
@@ -553,7 +569,6 @@ class Interface:
                             self.brushStrength = temp[1]
                             self.slidersData = temp
                             self.regenerateBrush(-97)
-                    
                 if self.selectedTool == -96: 
                     '''Pencil'''
                     placeOver(img, displayText(f"Pencil:", "m"), (10,10))
@@ -565,7 +580,6 @@ class Interface:
                             self.brushSize = temp[0]
                             self.slidersData = temp
                             self.regenerateBrush(-96)
-
                 if self.selectedTool == -95:
                     '''Eraser'''
                     placeOver(img, displayText(f"Eraser:", "m"), (10,10))
@@ -579,7 +593,14 @@ class Interface:
                             self.brushStrength = temp[1]
                             self.slidersData = temp
                             self.regenerateBrush(-95)
-
+                if self.selectedTool == -94:
+                    '''Paint Bucket'''
+                    placeOver(img, displayText(f"Paint Bucket:", "m"), (10,10))
+                    placeOver(img, displayText(f"Tolerance: {self.interactableVisualObjects[self.sliders[0]][1].getData()}", "sm"), (10, 35))
+                    if self.interacting == -999:
+                        temp = self.interactableVisualObjects[self.sliders[0]][1].getData()
+                        if self.brushStrength != temp:
+                            self.brushStrength = temp
                 if self.selectedTool == -80: 
                     '''Console'''
                     if len(self.consoleAlerts) > 15: self.consoleAlerts = self.consoleAlerts[-15:]
@@ -613,7 +634,7 @@ class Interface:
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
-                self.interactableVisualObjects[id][1].tick(img, self.interacting==id or self.selectedTool==id)
+                self.interactableVisualObjects[id][1].tick(img, self.interacting==id or self.selectedTool==id or self.interactableVisualObjects[id][1].getInteractable(self.mx - 1057, self.my - 20))
 
         if SHOW_CROSSHAIR: placeOver(img, CURSOR_SELECT_ARRAY if self.mPressed else CURSOR_ARROW_ARRAY, (self.mx-1057, self.my-20), True)
 

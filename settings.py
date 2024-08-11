@@ -148,6 +148,8 @@ ICON_BUCKET_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "bu
 ICON_EYEDROP_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eyedrop.png")).convert("RGBA"))
 
 ICON_CONSOLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "console.png")).convert("RGBA"))
+ICON_SAVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "save.png")).convert("RGBA"))
+
 ICON_SHOWN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "shown.png")).convert("RGBA"))
 ICON_HIDDEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "hidden.png")).convert("RGBA"))
 ICON_LOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "lock.png")).convert("RGBA"))

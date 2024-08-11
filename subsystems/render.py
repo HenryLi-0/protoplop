@@ -247,3 +247,29 @@ def setLimitedSizeSize(img: numpy.ndarray, size:tuple|list):
 def resizeImage(img: numpy.ndarray, size:tuple|list):
     '''Returns the a copy of the image scaled to shape size'''
     return numpy.array(Image.fromarray(img).resize(size, Image.Resampling.NEAREST))
+
+def fill(img:numpy.ndarray, pixel:tuple|list, color:tuple|list, tolerance:int):
+    '''Modifies the given image with the effects of flood filling the given pixel with the given color and given tolerance'''
+    target_color = img[pixel[1], pixel[0]]    
+    mask = numpy.zeros(img.shape[:2], dtype=bool)
+    mask[pixel[1], pixel[0]] = True
+
+    while True:
+        expanded_mask = numpy.zeros_like(mask)
+
+        expanded_mask[:-1, :] |= mask[1:, :]
+        expanded_mask[1:, :] |= mask[:-1, :]
+        expanded_mask[:, :-1] |= mask[:, 1:]
+        expanded_mask[:, 1:] |= mask[:, :-1]
+        
+        color_diff = numpy.abs(img[:, :, :] - target_color)
+        within_tolerance = numpy.all(color_diff <= tolerance, axis=2)
+
+        new_mask = expanded_mask & within_tolerance & ~mask
+
+        if not numpy.any(new_mask):
+            break
+
+        mask |= new_mask
+    img[mask] = color
+

@@ -398,3 +398,27 @@ class MovableColorVisualObject:
             self.positionO.setPosition((round(max(minX,min(pos[0],maxX))), round(max(minY,min(pos[1],maxY)))))
     def getInteractable(self, rmx, rmy):
         return self.positionO.getInteract(rmx, rmy)
+    
+class CheckboxVisualObject:
+    '''A checkbox, basically a simple toggle.'''
+    def __init__(self, name, pos:tuple|list, size:tuple|list = (29,29), state = False):
+        self.type = "checkbox"
+        self.name = name
+        self.img = generateIcon(generateColorBox(size, (255,0,0,255)), False, size)
+        self.img2 = generateIcon(generateColorBox(size, (0,255,0,255)), False, size)
+        self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
+        self.active = 0
+        self.state = state
+    def tick(self, img, active):
+        if active: self.active +=1
+        else: self.active = 0
+        if self.active == 1: self.state = not(self.state)
+        placeOver(img, self.img2 if self.state else self.img, self.positionO.getPosition(), False)
+    def updatePos(self, rmx, rmy):
+        pass
+    def keepInFrame(self, minX, minY, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
+    def getInteractable(self,rmx,rmy):
+        return self.positionO.getInteract(rmx, rmy)
