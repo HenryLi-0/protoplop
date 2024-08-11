@@ -553,9 +553,12 @@ class Interface:
                     self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushStrength)
                 if self.selectedTool == -81: 
                     '''Saving'''
-                    self.sliders = [self.c.c()]
-                    self.interactableVisualObjects[self.sliders[0]] = ["p", CheckboxVisualObject("Flatten", (20,55), (30,30)), True]
+                    self.sliders = [self.c.c(), self.c.c(), self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", CheckboxVisualObject("Flatten", (10,35), (10,10)), True]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", CheckboxVisualObject("idk", (10,55), (10,10)), True]
+
                     
+
             else:
                 if self.selectedTool == -97: 
                     '''Paint Brush'''
@@ -601,6 +604,12 @@ class Interface:
                         temp = self.interactableVisualObjects[self.sliders[0]][1].getData()
                         if self.brushStrength != temp:
                             self.brushStrength = temp
+                if self.selectedTool == -81:
+                    '''Saving'''
+                    placeOver(img, displayText(f"Saving Options:", "m"), (10,10))
+                    placeOver(img, displayText(f"Flatten: {self.interactableVisualObjects[self.sliders[0]][1].state}", "sm"), (30, 37))
+                    placeOver(img, displayText(f"idk: {self.interactableVisualObjects[self.sliders[1]][1].state}", "sm"), (30, 57))
+
                 if self.selectedTool == -80: 
                     '''Console'''
                     if len(self.consoleAlerts) > 15: self.consoleAlerts = self.consoleAlerts[-15:]
@@ -791,10 +800,19 @@ class Interface:
             self.brush = generatePencilBrush(self.brushSize, self.brushColor)
             self.consoleAlerts.append(f"{self.ticks} - generated a pencil brush!")
         elif tool == -95: 
-            '''Pencil'''
+            '''Eraser'''
             self.brush = generateEraserBrush(self.brushSize, self.brushStrength)
             self.consoleAlerts.append(f"{self.ticks} - generated an eraser brush!")
         return self.brush
+    
+    def saveImage(self, path):
+        total = self.blankLayer.copy()
+        for i in range(len(self.layers)):
+            c = self.layers[i].copy()
+            applyMask(c, self.layerProperties[i][2])
+            placeOver(total, c, (0,0))
+        '''ADD PROPER SAVING!!!'''
+        Image.fromarray(total).show()
 
     def saveState(self):
         pass

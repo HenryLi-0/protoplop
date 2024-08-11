@@ -422,3 +422,27 @@ class CheckboxVisualObject:
             self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
     def getInteractable(self,rmx,rmy):
         return self.positionO.getInteract(rmx, rmy)
+    
+class ButtonPushVisualObject:
+    '''A button, but it resets itself after some ticks!'''
+    def __init__(self, name, pos:tuple|list, icon:numpy.ndarray, size:tuple|list = (29,29), time = 60):
+        self.type = "button"
+        self.name = name
+        self.img = icon
+        self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
+        self.lastPressed = 0
+        self.state = False
+        self.time = time
+    def tick(self, img, active):
+        if active: self.lastPressed = 0
+        else: self.lastPressed += 1
+        self.state == (self.time > self.lastPressed)
+        placeOver(img, self.img, self.positionO.getPosition(), False)
+    def updatePos(self, rmx, rmy):
+        pass
+    def keepInFrame(self, minX, minY, maxX, maxY):
+        pos = self.positionO.getPosition()
+        if pos[0] < minX or maxX < pos[0] or pos[1] < minY or maxY < pos[1]:
+            self.positionO.setPosition((max(minX,min(pos[0],maxX)), max(minY,min(pos[1],maxY))))
+    def getInteractable(self,rmx,rmy):
+        return self.positionO.getInteract(rmx, rmy)
