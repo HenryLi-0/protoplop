@@ -3,14 +3,14 @@
 from settings import *
 from PIL import ImageTk, Image
 from tkinter import filedialog
-import time, random, ast, cv2
+import time, random, ast
 from subsystems.render import *
 from subsystems.fancy import *
 from subsystems.simplefancy import *
 from subsystems.visuals import *
 from subsystems.counter import Counter
 from subsystems.point import *
-from subsystems.label import LabelWrapper
+from subsystems.bay import *
 
 class Interface:
     def __init__(self):
@@ -47,7 +47,8 @@ class Interface:
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
 
-            -81 : ["t", IconVisualObject("Save (Layer)", ICON_SPACING(5,2),    ICON_SAVE_ARRAY, (33,33))],
+            -82 : ["t", IconVisualObject(        "Open", ICON_SPACING(5,1),    ICON_OPEN_ARRAY, (33,33))],
+            -81 : ["t", IconVisualObject(        "Save", ICON_SPACING(5,2),    ICON_SAVE_ARRAY, (33,33))],
             -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(5,3), ICON_CONSOLE_ARRAY, (33,33))],
 
             -79 : ["c", ColorVisualObject("past color 9", (9*28+6, 128), 12, (255,255,255,255))],
@@ -165,7 +166,7 @@ class Interface:
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
 
         if self.interactableVisualObjects[self.interacting][1].name == "Save To File" and mPressed < 3: 
-            self.saveImage()
+            self.saveDrawing()
             self.selectedTool = -99
         
         if self.interacting == -21 and mPressed < 3: 
@@ -808,7 +809,7 @@ class Interface:
             self.consoleAlerts.append(f"{self.ticks} - generated an eraser brush!")
         return self.brush
     
-    def saveImage(self):
+    def saveDrawing(self):
         if self.interactableVisualObjects[self.sliders[0]][1].state:
             path = filedialog.asksaveasfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".png", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg;*.jpeg"), ("BMP files", "*.bmp"), ("TIFF files", "*.tiff;*.tif"), ("GIF files", "*.gif"), ("All files", "*.*")])
             if path != "":
@@ -822,6 +823,32 @@ class Interface:
                 img.save(path)
         else:
             path = filedialog.asksaveasfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".protoplop", filetypes=[("Protoplop file", "*.protoplop"), ("All files", "*.*")])
+            if path != "":
+                self.projectPath = path
+                self.projectLastSaved = round(time.time())
+                export = []
+                # Image (General)
+                export.append(self.imageSize)
+                # Layers
+                export.append([arrayToRawImage(layer) for layer in self.layers])
+                export.append(self.layerNames)
+                temp = self.layerProperties.copy()
+                for i in range(len(temp)): 
+                    if type(temp[i][2]) != str:
+                        temp[i][2] = arrayToRawImage(temp[i][2])
+                export.append(temp)
+
+                with open(path, "w") as f:
+                    f.write(str(export))
+                    f.close()
+
+    def loadDrawing(self):
+        path = filedialog.askopenfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".protoplop", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg;*.jpeg"), ("BMP files", "*.bmp"), ("TIFF files", "*.tiff;*.tif"), ("GIF files", "*.gif"), ("Protoplop file", "*.protoplop"), ("All files", "*.*")])
+        if path != "":
+            if path.endswith(".protoplop"):
+                pass
+
+
 
     def saveState(self):
         pass

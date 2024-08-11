@@ -149,6 +149,7 @@ ICON_EYEDROP_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "e
 
 ICON_CONSOLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "console.png")).convert("RGBA"))
 ICON_SAVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "save.png")).convert("RGBA"))
+ICON_OPEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "import.png")).convert("RGBA"))
 
 ICON_SHOWN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "shown.png")).convert("RGBA"))
 ICON_HIDDEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "hidden.png")).convert("RGBA"))
