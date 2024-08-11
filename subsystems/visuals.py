@@ -423,21 +423,23 @@ class CheckboxVisualObject:
     def getInteractable(self,rmx,rmy):
         return self.positionO.getInteract(rmx, rmy)
     
-class ButtonPushVisualObject:
-    '''A button, but it resets itself after some ticks!'''
-    def __init__(self, name, pos:tuple|list, icon:numpy.ndarray, size:tuple|list = (29,29), time = 60):
+class TextButtonPushVisualObject:
+    '''A button, but it has text! and it resets itself after some ticks!'''
+    def __init__(self, name, text:numpy.ndarray, pos:tuple|list, time = 60):
         self.type = "button"
         self.name = name
-        self.img = icon
+        temp = displayText(str(text), "m")
+        self.img = generateIcon(temp, False, (temp.shape[1],temp.shape[0]))
+        self.img2 = generateIcon(temp, True, (temp.shape[1],temp.shape[0]))
         self.positionO = RectangularPositionalBox((self.img.shape[1],self.img.shape[0]), pos[0], pos[1])
-        self.lastPressed = 0
+        self.lastPressed = 9999999
         self.state = False
         self.time = time
     def tick(self, img, active):
         if active: self.lastPressed = 0
         else: self.lastPressed += 1
-        self.state == (self.time > self.lastPressed)
-        placeOver(img, self.img, self.positionO.getPosition(), False)
+        self.state = (self.time > self.lastPressed)
+        placeOver(img, self.img2 if self.state else self.img, self.positionO.getPosition(), False)
     def updatePos(self, rmx, rmy):
         pass
     def keepInFrame(self, minX, minY, maxX, maxY):

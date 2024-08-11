@@ -164,8 +164,10 @@ class Interface:
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
 
-        # if self.interactableVisualObjects[self.interacting][1].name == "new sprite" and mPressed < 3: 
-        #     print("button press")
+        if self.interactableVisualObjects[self.interacting][1].name == "Save To File" and mPressed < 3: 
+            self.saveImage()
+            self.selectedTool = -99
+        
         if self.interacting == -21 and mPressed < 3: 
             '''Create Layer'''
             self.scheduleAllRegions()
@@ -554,9 +556,9 @@ class Interface:
                 if self.selectedTool == -81: 
                     '''Saving'''
                     self.sliders = [self.c.c(), self.c.c(), self.c.c()]
-                    self.interactableVisualObjects[self.sliders[0]] = ["p", CheckboxVisualObject("Flatten", (10,35), (10,10)), True]
-                    self.interactableVisualObjects[self.sliders[1]] = ["p", CheckboxVisualObject("idk", (10,55), (10,10)), True]
-
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", CheckboxVisualObject("Flatten", (10,35), (10,10))]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", CheckboxVisualObject("idk", (10,55), (10,10))]
+                    self.interactableVisualObjects[self.sliders[2]] = ["p", TextButtonPushVisualObject("Save To File", "Save", (10,120), 10)]
                     
 
             else:
@@ -640,6 +642,7 @@ class Interface:
         img = im.copy()
         
         placeOver(img, displayText(f"FPS: {self.fps}", "m", colorBG = (0,0,0,100)), (190,5))
+        placeOver(img, displayText(f"obj: {len(self.interactableVisualObjects)}", "m", colorBG = (0,0,0,100)), (190,35))
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":
@@ -805,14 +808,20 @@ class Interface:
             self.consoleAlerts.append(f"{self.ticks} - generated an eraser brush!")
         return self.brush
     
-    def saveImage(self, path):
-        total = self.blankLayer.copy()
-        for i in range(len(self.layers)):
-            c = self.layers[i].copy()
-            applyMask(c, self.layerProperties[i][2])
-            placeOver(total, c, (0,0))
-        '''ADD PROPER SAVING!!!'''
-        Image.fromarray(total).show()
+    def saveImage(self):
+        if self.interactableVisualObjects[self.sliders[0]][1].state:
+            path = filedialog.asksaveasfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".png", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg;*.jpeg"), ("BMP files", "*.bmp"), ("TIFF files", "*.tiff;*.tif"), ("GIF files", "*.gif"), ("All files", "*.*")])
+            if path != "":
+                total = self.blankLayer.copy()
+                for i in range(len(self.layers)):
+                    c = self.layers[i].copy()
+                    if type(self.layerProperties[i][2]) != str:
+                        applyMask(c, self.layerProperties[i][2])
+                    placeOver(total, c, (0,0))
+                img = Image.fromarray(total)
+                img.save(path)
+        else:
+            path = filedialog.asksaveasfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".protoplop", filetypes=[("Protoplop file", "*.protoplop"), ("All files", "*.*")])
 
     def saveState(self):
         pass

@@ -39,7 +39,7 @@ VOID_COLOR_RGBA       = hexColorToRGBA(VOID_COLOR      )
 
 '''Saving'''
 import os, time
-PATH_SAVE_DEFAULT = os.path.join("tapes")
+PATH_SAVE_DEFAULT = os.path.join("saves")
 
 FORMAT_TIME = lambda x: time.strftime("%I:%M:%S %p %m/%d/%Y", time.localtime(x))
 
