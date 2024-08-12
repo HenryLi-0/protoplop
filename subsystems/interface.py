@@ -46,6 +46,7 @@ class Interface:
             -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
             -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
             -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
+            -92 : ["t", IconVisualObject("Resize (All)", ICON_SPACING(1,3),  ICON_RESIZE_ARRAY, (33,33))],
 
             -82 : ["t", IconVisualObject(        "Open", ICON_SPACING(5,1),    ICON_OPEN_ARRAY, (33,33))],
             -81 : ["t", IconVisualObject(        "Save", ICON_SPACING(5,2),    ICON_SAVE_ARRAY, (33,33))],
@@ -130,7 +131,7 @@ class Interface:
         for region in ALL_REGIONS:
             self.regionDataCache[region] = EMPTY_IMAGE_ARRAY.copy()
         '''Drawing and Brushes'''
-        self.popUpDataIDs = [-97, -96, -95, -80, -94, -81]
+        self.popUpDataIDs = [-97, -96, -95, -80, -94, -81, -92]
         self.drawingToolsIDs = [-97,-96, -95]
         self.lastDrawingTool = -999
         self.drawing = False
@@ -560,14 +561,20 @@ class Interface:
                     self.sliders = [self.c.c()]
                     self.interactableVisualObjects[self.sliders[0]] = ["p", HorizontalSliderVisualObject("Tolerance", (20,55), 248, (0,100))]
                     self.interactableVisualObjects[self.sliders[0]][1].setData(self.brushStrength)
+                if self.selectedTool == -92:
+                    '''Resize'''
+                    self.sliders = [self.c.c(),self.c.c(),self.c.c(),self.c.c(),self.c.c()]
+                    self.interactableVisualObjects[self.sliders[0]] = ["p", EditableTextBoxVisualObject("scaleX", (20,55), 100, True)]
+                    self.interactableVisualObjects[self.sliders[1]] = ["p", EditableTextBoxVisualObject("scaleY", (100,55), 100, True)]
+                    self.interactableVisualObjects[self.sliders[2]] = ["p", EditableTextBoxVisualObject("pixelX", (20,105), self.imageSize[0], True)]
+                    self.interactableVisualObjects[self.sliders[3]] = ["p", EditableTextBoxVisualObject("pixelY", (100,105), self.imageSize[1], True)]
+                    self.interactableVisualObjects[self.sliders[4]] = ["p", TextButtonPushVisualObject("Resize Image", "Resize", (10,140), 10)]
                 if self.selectedTool == -81: 
                     '''Saving'''
                     self.sliders = [self.c.c(), self.c.c(), self.c.c()]
                     self.interactableVisualObjects[self.sliders[0]] = ["p", CheckboxVisualObject("Flatten", (10,35), (10,10))]
                     self.interactableVisualObjects[self.sliders[1]] = ["p", CheckboxVisualObject("idk", (10,55), (10,10))]
                     self.interactableVisualObjects[self.sliders[2]] = ["p", TextButtonPushVisualObject("Save To File", "Save", (10,120), 10)]
-                    
-
             else:
                 if self.selectedTool == -97: 
                     '''Paint Brush'''
@@ -613,6 +620,22 @@ class Interface:
                         temp = self.interactableVisualObjects[self.sliders[0]][1].getData()
                         if self.brushStrength != temp:
                             self.brushStrength = temp
+                if self.selectedTool == -92:
+                    '''Resize'''
+                    placeOver(img, displayText(f"Saving Options:", "m"), (10,10))
+                    placeOver(img, displayText(f"Scale: {0}", "sm"), (10, 35))
+                    placeOver(img, displayText(f"Pixels: {0}", "sm"), (10, 85))
+                    if self.interacting == self.previousInteracting and self.previousInteracting in self.sliders[:4]:
+                        altered = self.sliders.index(self.previousInteracting)
+                        if altered == 0: # changed scale X
+                            self.interactableVisualObjects[self.sliders[2]][1].updateText(round((float(self.interactableVisualObjects[self.sliders[0]][1].txt)/100)*self.imageSize[0]))
+                        if altered == 1: # changed scale Y
+                            self.interactableVisualObjects[self.sliders[3]][1].updateText(round((float(self.interactableVisualObjects[self.sliders[1]][1].txt)/100)*self.imageSize[1]))
+                        if altered == 2: # changed image X
+                            self.interactableVisualObjects[self.sliders[0]][1].updateText(round((float(self.interactableVisualObjects[self.sliders[2]][1].txt)/self.imageSize[0])*100))
+                        if altered == 3: # changed image Y
+                            self.interactableVisualObjects[self.sliders[1]][1].updateText(round((float(self.interactableVisualObjects[self.sliders[3]][1].txt)/self.imageSize[1])*100))
+
                 if self.selectedTool == -81:
                     '''Saving'''
                     placeOver(img, displayText(f"Saving Options:", "m"), (10,10))
@@ -650,6 +673,8 @@ class Interface:
         
         placeOver(img, displayText(f"FPS: {self.fps}", "m", colorBG = (0,0,0,100)), (190,5))
         placeOver(img, displayText(f"obj: {len(self.interactableVisualObjects)}", "m", colorBG = (0,0,0,100)), (190,35))
+        # placeOver(img, POINT_IDLE_ARRAY if self.ticks%2 == 0 else POINT_SELECTED_ARRAY, (120,5))
+
 
         for id in self.interactableVisualObjects:
             if self.interactableVisualObjects[id][0] == "t":

@@ -147,6 +147,7 @@ ICON_PENCIL_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "pe
 ICON_ERASER_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eraser.png")).convert("RGBA"))
 ICON_BUCKET_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "bucket.png")).convert("RGBA"))
 ICON_EYEDROP_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eyedrop.png")).convert("RGBA"))
+ICON_RESIZE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "resize.png")).convert("RGBA"))
 
 ICON_CONSOLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "console.png")).convert("RGBA"))
 ICON_SAVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "save.png")).convert("RGBA"))

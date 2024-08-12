@@ -143,20 +143,36 @@ class ButtonVisualObject:
 
 class EditableTextBoxVisualObject:
     '''An editable text box.'''
-    def __init__(self, name, pos:tuple|list, startTxt= ""):
+    def __init__(self, name, pos:tuple|list, startTxt= "", intOnly = False):
         self.type = "textbox"
         self.name = name
-        self.txt = startTxt
+        self.txt = str(startTxt)
         self.txtImg = displayText(self.txt, "m")
+        self.intOnly = intOnly
         self.positionO = RectangularPositionalBox((max(self.txtImg.shape[1],10),max(self.txtImg.shape[0],23)), pos[0], pos[1])
+        self.underlineIdle = generateColorBox((self.positionO.getBBOX()[0],3), FRAME_COLOR_RGBA)
+        self.underlineActive = generateColorBox((self.positionO.getBBOX()[0],3), SELECTED_COLOR_RGBA)
     def tick(self, img, active):
-        placeOver(img, generateColorBox(self.positionO.getBBOX(), hexColorToRGBA(FRAME_COLOR) if active else hexColorToRGBA(BACKGROUND_COLOR)), self.positionO.getPosition())
+        temp = generateColorBox(addP(self.positionO.getBBOX(), (0,3)), FRAME_COLOR_RGBA if active else BACKGROUND_COLOR_RGBA)
+        placeOver(temp, self.underlineActive if active else self.underlineIdle, (0, self.positionO.getBBOX()[1]))
+        placeOver(img, temp, self.positionO.getPosition())
         placeOver(img, self.txtImg, self.positionO.getPosition(), False)
     def updateText(self, txt):
-        if self.txt!=txt:
-            self.txt = txt
+        if self.txt!=str(txt):
+            self.txt = str(txt)
+            if self.intOnly:
+                if txt == "" or len(str(txt)) == 0:
+                    self.txt = "0"
+                else:
+                    temp = list(str(txt))
+                    for item in temp:
+                        if item not in "0123456789":
+                            while item in temp: temp.remove(item)
+                        self.txt = "".join(temp)
             self.txtImg = displayText(self.txt, "m")
             self.positionO.setBBOX((max(self.txtImg.shape[1]+3,10),max(self.txtImg.shape[0],23)))
+            self.underlineIdle = generateColorBox((self.positionO.getBBOX()[0],3), FRAME_COLOR_RGBA)
+            self.underlineActive = generateColorBox((self.positionO.getBBOX()[0],3), SELECTED_COLOR_RGBA)
     def updatePos(self, rmx, rmy):
         pass
     def keepInFrame(self, minX, minY, maxX, maxY):
