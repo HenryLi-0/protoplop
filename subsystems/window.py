@@ -55,17 +55,7 @@ class Window:
         self.mouseScroll = 0
         
         temp = self.interface.updateSketchLayers or self.interface.updateSketch or len(self.interface.updateSketchRegions) > 0
-        if self.interface.updateSketchLayers:
-            # self.interface.processSketchLayers()
-            # self.interface.updateSketchLayers = False
-            pass
-        if self.interface.updateSketch: 
-            # self.i_sketch = self.interface.processSketch(self.i_sketch)
-            # self.w_sketch.update(arrayToImage(self.i_sketch))
-            # self.interface.updateSketch = False
-            pass
 
-        '''OPTIMIZE, CONSTANT SKETCH SCREEN UPDATES ARE NOT NECCESARY!'''
         if len(self.interface.updateSketchRegions) > 0:
             i = 0
             start = time.time()
@@ -76,6 +66,15 @@ class Window:
                 if time.time() - start > SKETCH_MAX_REGIONS_TIME:
                     break
             self.interface.consoleAlerts.append(f"{self.interface.ticks} - regions left: {len(self.interface.updateSketchRegions)}")
+        if len(self.interface.updateSketchRegionLayers) > 0:
+            i = 0
+            start = time.time()
+            for i in range(min(SKETCH_MAX_REGIONS, len(self.interface.updateSketchRegions))):
+                region = self.interface.updateSketchRegionLayers.pop(0)
+                self.interface.processLayerCacheSketchSector(region[0], region[1])
+                if time.time() - start > SKETCH_MAX_REGIONS_TIME:
+                    break
+            self.interface.consoleAlerts.append(f"{self.interface.ticks} - layer cache regions left: {len(self.interface.updateSketchRegions)}")
         self.w_tools .update(arrayToImage(self.interface.processTools (self.b_tools )))
         self.w_colors.update(arrayToImage(self.interface.processColors(self.b_colors)))
         self.w_layers.update(arrayToImage(self.interface.processLayers(self.b_layers)))
@@ -102,6 +101,7 @@ class Window:
         print("windowOccaionalProcess")
         self.window.title(f"Protoplop")
         print(self.getFPS())
+        self.interface.scheduleAllRegionsCacheLayer()
         self.interface.scheduleAllRegions()
         self.window.after(OCCASIONAL_TICK_MS, self.windowOccasionalProcesses)
 
