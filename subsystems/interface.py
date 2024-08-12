@@ -98,7 +98,6 @@ class Interface:
         self.updateSketch = True
         self.updateSketchLayers = True
         self.updateSketchRegions = ALL_REGIONS.copy()
-        self.updateSketchRegionLayers = ALL_REGIONS.copy()
         '''Layers'''
         self.blankLayer = generateColorBox((self.imageSize[0], self.imageSize[1]), (0,0,0,0))
         self.blankMask = generateMask((self.imageSize[0], self.imageSize[1]), 255)
@@ -131,11 +130,8 @@ class Interface:
         self.editingMask = False
         '''Regions'''
         self.regionDataCache = {}
-        self.regionLayerCache = {}
         for region in ALL_REGIONS:
             self.regionDataCache[region] = EMPTY_IMAGE_ARRAY.copy()
-            self.regionLayerCache[region] = [EMPTY_IMAGE_ARRAY.copy(),EMPTY_IMAGE_ARRAY.copy()]
-        self.scheduleAllRegionsCacheLayer()
         '''Drawing and Brushes'''
         self.popUpDataIDs = [-97, -96, -95, -80, -94, -81, -92]
         self.drawingToolsIDs = [-97,-96, -95]
@@ -176,7 +172,6 @@ class Interface:
         
         if self.interacting == -21 and mPressed < 3: 
             '''Create Layer'''
-            self.scheduleAllRegionsCacheLayer()
             self.scheduleAllRegions()
             self.layers.insert(self.selectedLayer+1, self.blankLayer.copy())
             self.layerNames.insert(self.selectedLayer+1, "Layer")
@@ -184,7 +179,6 @@ class Interface:
         if self.interacting == -20 and mPressed < 3:
             '''Delete Layer'''
             if len(self.layers) > 3:
-                self.scheduleAllRegionsCacheLayer()
                 self.scheduleAllRegions()
                 self.layers.pop(self.selectedLayer)
                 self.layerNames.pop(self.selectedLayer)
@@ -226,14 +220,12 @@ class Interface:
                 self.keybindLastUpdate = time.time()
                 self.updateSketch = True
                 self.updateSketchLayers = True
-                self.scheduleAllRegionsCacheLayer()
                 self.scheduleAllRegions()
                 self.cameraPos = (self.calcScreenToNonZoomedX(mx-20), self.calcScreenToNonZoomedY(my-20))
             if KB_L_MV_UP(keyQueue):
                 '''MOVE LAYER UP: ALT + UP'''
                 self.keybindLastUpdate = time.time()
                 if len(self.layers) > 3 and self.selectedLayer < len(self.layers)-2:
-                    self.scheduleAllRegionsCacheLayer()
                     self.scheduleAllRegions()
                     temp = self.layers.pop(self.selectedLayer)
                     temp2 = self.layerNames.pop(self.selectedLayer)
@@ -246,7 +238,6 @@ class Interface:
                 '''MOVE LAYER DOWN: ALT + DOWN'''
                 self.keybindLastUpdate = time.time()
                 if len(self.layers) > 3 and self.selectedLayer > 1:
-                    self.scheduleAllRegionsCacheLayer()
                     self.scheduleAllRegions()
                     temp = self.layers.pop(self.selectedLayer)
                     temp2 = self.layerNames.pop(self.selectedLayer)
@@ -269,7 +260,6 @@ class Interface:
                 '''DELETE LAYER: ALT + S'''
                 self.keybindLastUpdate = time.time()
                 if len(self.layers) > 3:
-                    self.scheduleAllRegionsCacheLayer()
                     self.scheduleAllRegions()
                     self.layers.pop(self.selectedLayer)
                     self.layerNames.pop(self.selectedLayer)
@@ -287,7 +277,6 @@ class Interface:
             if self.interacting == -996 and self.mouseInSketchSection:
                 self.updateSketch = True
                 self.updateSketchLayers = True
-                self.scheduleAllRegionsCacheLayer()
                 self.scheduleAllRegions()
                 temp = self.interactableVisualObjects[-996][1].data
                 self.sketchZoom -= self.mouseScroll/10
@@ -370,7 +359,6 @@ class Interface:
         if 1057 <= self.mx and self.mx <= 1344 and 380 <= self.my and self.my <= 677 and self.mPressed and mPressed < 3 and self.interacting == -999:
             i = len(self.layers)-math.floor(((self.my-380)+self.layersOffset)/50)-1
             if 1 <= i and i <= len(self.layers)-2:
-                self.scheduleAllRegionsCacheLayer()
                 self.selectedLayer = i
 
         if self.selectedTool in self.drawingToolsIDs: self.lastDrawingTool = self.selectedTool
@@ -433,36 +421,8 @@ class Interface:
         self.selectedLayer = max(1,min(self.selectedLayer,len(self.layers)-2))
         total = self.blankProcessingLayerSector.copy()
 
-        placeOver(total, self.regionLayerCache[(x,y)][0], (0,0))
-        
-        if self.layerProperties[self.selectedLayer][1]:
-            if self.sketchZoom < 100: # The entire image is smaller than the screen
-                scaledDrawingImage = setSize(self.layers[self.selectedLayer], self.sketchZoom)
-                scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=VOID_COLOR_RGBA)
-                if type(self.layerProperties[self.selectedLayer][2]) != str:
-                    scaledDrawingMask  = setSize(self.layerProperties[self.selectedLayer][2], self.sketchZoom)
-                    scaledDrawingMask  = getRegion(scaledDrawingMask, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=0, thirdaxis=False)
-                    applyMask(scaledDrawingImage, scaledDrawingMask)
-                if SKETCH_QUALITY != 1: scaledDrawingImage = setSize(scaledDrawingImage, 100/SKETCH_QUALITY)
-            else: # The image is in one dimension or another larger than the screen
-                scaledDrawingImage = getRegion(self.layers[self.selectedLayer], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=VOID_COLOR_RGBA)
-                scaledDrawingImage = setSizeSize(scaledDrawingImage, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
-                if type(self.layerProperties[self.selectedLayer][2]) != str:
-                    scaledDrawingMask  = getRegion(self.layerProperties[self.selectedLayer][2], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=0, thirdaxis=False)
-                    scaledDrawingMask  = setSizeSize(scaledDrawingMask, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
-                    applyMask(scaledDrawingImage, scaledDrawingMask)
-            placeOver(total, scaledDrawingImage, (0,0))
-
-        placeOver(total, self.regionLayerCache[(x,y)][1], (0,0))
-        
-        self.regionDataCache[(x,y)] = total
-        return total 
-    
-    def processLayerCacheSketchSector(self, x, y):
-        back = self.blankProcessingLayerSector.copy()
-        front = self.blankProcessingLayerSector.copy()
         for index in range(0, len(self.layers)):
-            if self.layerProperties[index][1] and index != self.selectedLayer:
+            if self.layerProperties[index][1]:
                 if self.sketchZoom < 100: # The entire image is smaller than the screen
                     scaledDrawingImage = setSize(self.layers[index], self.sketchZoom)
                     scaledDrawingImage = getRegion(scaledDrawingImage, (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*x, self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*y), (self.cameraPos[0]*(self.sketchZoom/100) - 512 + 128*(x+1), self.cameraPos[1]*(self.sketchZoom/100) - 329 + 94*(y+1)), 2, color=VOID_COLOR_RGBA)
@@ -478,12 +438,10 @@ class Interface:
                         scaledDrawingMask  = getRegion(self.layerProperties[index][2], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=0, thirdaxis=False)
                         scaledDrawingMask  = setSizeSize(scaledDrawingMask, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
                         applyMask(scaledDrawingImage, scaledDrawingMask)
-                if index < self.selectedLayer:
-                    placeOver(back, scaledDrawingImage, (0,0))
-                elif index > self.selectedLayer:
-                    placeOver(front, scaledDrawingImage, (0,0))
-        self.regionLayerCache[(x,y)] = [back, front]
-                    
+                placeOver(total, scaledDrawingImage, (0,0))
+        
+        self.regionDataCache[(x,y)] = total
+        return total 
     
     def tickButtons(self, mPressed):
         '''Run from tick(), is a seperate function/methoed for orginization'''
@@ -491,13 +449,11 @@ class Interface:
             self.saveDrawing()
             self.interacting = -999
             self.selectedTool = -99
-            self.scheduleAllRegionsCacheLayer()
             self.scheduleAllRegions()
         if self.interacting == -82 and mPressed < 3: 
             self.loadDrawing()
             self.interacting = -999
             self.selectedTool = -99
-            self.scheduleAllRegionsCacheLayer()
             self.scheduleAllRegions()
         if self.interactableVisualObjects[self.interacting][1].name == "Resize Image" and mPressed < 3:
             for i in range(len(self.layers)):
@@ -508,7 +464,6 @@ class Interface:
             self.interacting = -999
             self.selectedTool = -99
             self.__init__((max(1,int(self.interactableVisualObjects[self.sliders[2]][1].txt)),max(1,int(self.interactableVisualObjects[self.sliders[3]][1].txt))),reset=False)
-            self.scheduleAllRegionsCacheLayer()
             self.scheduleAllRegions()
             
 
@@ -845,7 +800,6 @@ class Interface:
             self.layerProperties[self.selectedLayer][0] = self.interactableVisualObjects[-28][1].state
             if self.layerProperties[self.selectedLayer][1] != self.interactableVisualObjects[-29][1].state: 
                 self.layerProperties[self.selectedLayer][1] = self.interactableVisualObjects[-29][1].state
-                self.scheduleAllRegionsCacheLayer()
                 self.scheduleAllRegions()
         
         for i in range(1, len(self.layers)-1):
@@ -907,11 +861,6 @@ class Interface:
         for region in ALL_REGIONS:
             if region not in self.updateSketchRegions:
                 self.updateSketchRegions.append(region)
-    
-    def scheduleAllRegionsCacheLayer(self):
-        for region in ALL_REGIONS:
-            if region not in self.updateSketchRegionLayers:
-                self.updateSketchRegionLayers.append(region)
 
     def regenerateBrush(self, tool):
         if tool == -97: 
