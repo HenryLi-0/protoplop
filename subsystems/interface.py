@@ -542,6 +542,24 @@ class Interface:
             # Paint Bucket / Flood Filling
             fill(self.layers[self.selectedLayer], (round(self.calcScreenToNonZoomedX(rmx)), round(self.calcScreenToNonZoomedY(rmy))), self.brushColor, self.brushStrength)
             self.scheduleAllRegions()
+        
+        if self.selectedTool == -98 and self.mouseInSketchSection and self.mPressed and self.interacting == -999:
+            # Moving
+            if self.mRising:
+                if self.editingMask:
+                    self.interactableVisualObjects[-997][1].data = [self.mx, self.my, self.editingMask, self.layerProperties[self.selectedLayer][2].copy()]
+                else:
+                    self.interactableVisualObjects[-997][1].data = [self.mx, self.my, self.editingMask, self.layers[self.selectedLayer].copy()]
+            else:
+                temp = self.interactableVisualObjects[-997][1].data
+                dx, dy = self.mx-temp[0], self.my-temp[1]
+                if temp[2]:
+                    tempLayer = getRegion(temp[3], addP((0,0), (0-dx,0-dy)), addP(self.imageSize, (0-dx,0-dy)), 2, color = 255, thirdaxis = False)
+                    self.layerProperties[self.selectedLayer][2] = tempLayer
+                else:
+                    tempLayer = getRegion(temp[3], addP((0,0), (0-dx,0-dy)), addP(self.imageSize, (0-dx,0-dy)), 2)
+                    self.layers[self.selectedLayer] = tempLayer
+                self.scheduleAllRegions()
 
     def processPopUp(self, im):
         '''Pop Up Area: `(756,20) to (1043,198)`: size `(288,179)`'''
