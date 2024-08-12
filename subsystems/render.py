@@ -198,7 +198,7 @@ def setSize(img: numpy.ndarray, size):
 
 def setSizeSize(img: numpy.ndarray, size):
     '''Returns a copy of the given image with set size size, given the exact target sizes'''
-    return numpy.array(Image.fromarray(img).resize((size[0], size[1]), Image.Resampling.NEAREST))
+    return numpy.array(Image.fromarray(img).resize((max(1,size[0]), max(1,size[1])), Image.Resampling.NEAREST))
 
 def setSizeSizeBlur(img: numpy.ndarray, size):
     '''Returns a copy of the given image with set size size, given the exact target sizes, resampling is hamming!'''

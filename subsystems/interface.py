@@ -13,7 +13,7 @@ from subsystems.point import *
 from subsystems.bay import *
 
 class Interface:
-    def __init__(self, imageSize = DEFAULT_IMAGE_SIZE):
+    def __init__(self, imageSize = DEFAULT_IMAGE_SIZE, reset = True):
         self.mx = 0
         self.my = 0
         self.prevmx = 0
@@ -32,50 +32,51 @@ class Interface:
         l - layers
         p - pop up
         '''
-        self.interactableVisualObjects = {
-            -999 : [" ", DummyVisualObject("dummy", (0,0))], # used for not interacting with anything
-            -998 : [" ", DummyVisualObject("dummy", (0,0))], # used for text boxes
-            -997 : [" ", DummyVisualObject("dummy", (0,0))], # used by keybinds
-            -996 : [" ", DummyVisualObject("dummy", (0,0))], # used by scrolling
-            -995 : [" ", DummyVisualObject("dummy", (0,0))], # used when drawing
+        if reset:
+            self.interactableVisualObjects = {
+                -999 : [" ", DummyVisualObject("dummy", (0,0))], # used for not interacting with anything
+                -998 : [" ", DummyVisualObject("dummy", (0,0))], # used for text boxes
+                -997 : [" ", DummyVisualObject("dummy", (0,0))], # used by keybinds
+                -996 : [" ", DummyVisualObject("dummy", (0,0))], # used by scrolling
+                -995 : [" ", DummyVisualObject("dummy", (0,0))], # used when drawing
 
-            -99 : ["t", IconVisualObject(        "None", ICON_SPACING(0,0),    ICON_NONE_ARRAY, (33,33))],
-            -98 : ["t", IconVisualObject(        "Move", ICON_SPACING(0,1),    ICON_MOVE_ARRAY, (33,33))],
-            -97 : ["t", IconVisualObject( "Paint Brush", ICON_SPACING(0,2),   ICON_BRUSH_ARRAY, (33,33))],
-            -96 : ["t", IconVisualObject(      "Pencil", ICON_SPACING(0,3),  ICON_PENCIL_ARRAY, (33,33))],
-            -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
-            -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
-            -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
-            -92 : ["t", IconVisualObject("Resize (All)", ICON_SPACING(1,3),  ICON_RESIZE_ARRAY, (33,33))],
+                -99 : ["t", IconVisualObject(        "None", ICON_SPACING(0,0),    ICON_NONE_ARRAY, (33,33))],
+                -98 : ["t", IconVisualObject(        "Move", ICON_SPACING(0,1),    ICON_MOVE_ARRAY, (33,33))],
+                -97 : ["t", IconVisualObject( "Paint Brush", ICON_SPACING(0,2),   ICON_BRUSH_ARRAY, (33,33))],
+                -96 : ["t", IconVisualObject(      "Pencil", ICON_SPACING(0,3),  ICON_PENCIL_ARRAY, (33,33))],
+                -95 : ["t", IconVisualObject(      "Eraser", ICON_SPACING(1,0),  ICON_ERASER_ARRAY, (33,33))],
+                -94 : ["t", IconVisualObject(      "Bucket", ICON_SPACING(1,1),  ICON_BUCKET_ARRAY, (33,33))],
+                -93 : ["t", IconVisualObject("Color Picker", ICON_SPACING(1,2), ICON_EYEDROP_ARRAY, (33,33))],
+                -92 : ["t", IconVisualObject("Resize (All)", ICON_SPACING(1,3),  ICON_RESIZE_ARRAY, (33,33))],
 
-            -82 : ["t", IconVisualObject(        "Open", ICON_SPACING(5,1),    ICON_OPEN_ARRAY, (33,33))],
-            -81 : ["t", IconVisualObject(        "Save", ICON_SPACING(5,2),    ICON_SAVE_ARRAY, (33,33))],
-            -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(5,3), ICON_CONSOLE_ARRAY, (33,33))],
+                -82 : ["t", IconVisualObject(        "Open", ICON_SPACING(5,1),    ICON_OPEN_ARRAY, (33,33))],
+                -81 : ["t", IconVisualObject(        "Save", ICON_SPACING(5,2),    ICON_SAVE_ARRAY, (33,33))],
+                -80 : ["t", IconVisualObject(     "Console", ICON_SPACING(5,3), ICON_CONSOLE_ARRAY, (33,33))],
 
-            -79 : ["c", ColorVisualObject("past color 9", (9*28+6, 128), 12, (255,255,255,255))],
-            -78 : ["c", ColorVisualObject("past color 8", (8*28+6, 128), 12, (255,255,255,255))],
-            -77 : ["c", ColorVisualObject("past color 7", (7*28+6, 128), 12, (255,255,255,255))],
-            -76 : ["c", ColorVisualObject("past color 6", (6*28+6, 128), 12, (255,255,255,255))],
-            -75 : ["c", ColorVisualObject("past color 5", (5*28+6, 128), 12, (255,255,255,255))],
-            -74 : ["c", ColorVisualObject("past color 4", (4*28+6, 128), 12, (255,255,255,255))],
-            -73 : ["c", ColorVisualObject("past color 3", (3*28+6, 128), 12, (255,255,255,255))],
-            -72 : ["c", ColorVisualObject("past color 2", (2*28+6, 128), 12, (255,255,255,255))],
-            -71 : ["c", ColorVisualObject("past color 1", (1*28+6, 128), 12, (255,255,255,255))],
-            -70 : ["c", ColorVisualObject("past color 0", (0*28+6, 128), 12, (255,255,255,255))],
+                -79 : ["c", ColorVisualObject("past color 9", (9*28+6, 128), 12, (255,255,255,255))],
+                -78 : ["c", ColorVisualObject("past color 8", (8*28+6, 128), 12, (255,255,255,255))],
+                -77 : ["c", ColorVisualObject("past color 7", (7*28+6, 128), 12, (255,255,255,255))],
+                -76 : ["c", ColorVisualObject("past color 6", (6*28+6, 128), 12, (255,255,255,255))],
+                -75 : ["c", ColorVisualObject("past color 5", (5*28+6, 128), 12, (255,255,255,255))],
+                -74 : ["c", ColorVisualObject("past color 4", (4*28+6, 128), 12, (255,255,255,255))],
+                -73 : ["c", ColorVisualObject("past color 3", (3*28+6, 128), 12, (255,255,255,255))],
+                -72 : ["c", ColorVisualObject("past color 2", (2*28+6, 128), 12, (255,255,255,255))],
+                -71 : ["c", ColorVisualObject("past color 1", (1*28+6, 128), 12, (255,255,255,255))],
+                -70 : ["c", ColorVisualObject("past color 0", (0*28+6, 128), 12, (255,255,255,255))],
 
-            -50 : ["c", VerticalSliderVisualObject(         "Hue", (232,20), 100, [0,360])],
-            -49 : ["c", VerticalSliderVisualObject("Transparency", (260,20), 100, [100,0])],
-            -48 : ["c", MovableColorVisualObject("Color Picker", (62-10,120-10), 10, [0,0,0,255])],
-            -47 : ["c", ColorVisualObject("Brush Color", (14, 20), 18, (  0,  0,  0,255))],
-            -46 : ["c", ColorVisualObject( "Back Color", (14, 56), 18, (255,255,255,255))],
+                -50 : ["c", VerticalSliderVisualObject(         "Hue", (232,20), 100, [0,360])],
+                -49 : ["c", VerticalSliderVisualObject("Transparency", (260,20), 100, [100,0])],
+                -48 : ["c", MovableColorVisualObject("Color Picker", (62-10,120-10), 10, [0,0,0,255])],
+                -47 : ["c", ColorVisualObject("Brush Color", (14, 20), 18, (  0,  0,  0,255))],
+                -46 : ["c", ColorVisualObject( "Back Color", (14, 56), 18, (255,255,255,255))],
 
-            -30 : ["l", EditableTextBoxVisualObject("Selected Layer Name", (160, 10), "Layer")],
-            -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_HIDDEN_ARRAY, ICON_SHOWN_ARRAY, (15,15))],
-            -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY,  ICON_LOCK_ARRAY, (15,15))],
-            -22 : ["l", IconVisualObject(  "Layer Mask", (215,273), ICON_LAYERMASK_ARRAY, (15,15))],
-            -21 : ["l", IconVisualObject(   "New Layer", (239,273),      ICON_PLUS_ARRAY, (15,15))],
-            -20 : ["l", IconVisualObject("Delete Layer", (263,273),  ICON_TRASHCAN_ARRAY, (15,15))],
-        }
+                -30 : ["l", EditableTextBoxVisualObject("Selected Layer Name", (160, 10), "Layer")],
+                -29 : ["l", ToggleVisualObject(  "Show/Hide Layer", (10, 10), ICON_HIDDEN_ARRAY, ICON_SHOWN_ARRAY, (15,15))],
+                -28 : ["l", ToggleVisualObject("Lock/Unlock Layer", (40, 10), ICON_UNLOCK_ARRAY,  ICON_LOCK_ARRAY, (15,15))],
+                -22 : ["l", IconVisualObject(  "Layer Mask", (215,273), ICON_LAYERMASK_ARRAY, (15,15))],
+                -21 : ["l", IconVisualObject(   "New Layer", (239,273),      ICON_PLUS_ARRAY, (15,15))],
+                -20 : ["l", IconVisualObject("Delete Layer", (263,273),  ICON_TRASHCAN_ARRAY, (15,15))],
+            }
         '''Control'''
         self.interacting = -999
         self.previousInteracting = -999
@@ -102,21 +103,22 @@ class Interface:
         self.blankMask = generateMask((self.imageSize[0], self.imageSize[1]), 255)
         self.blankProcessingLayer = setSize(self.blankLayer, 100/SKETCH_QUALITY)
         self.blankProcessingLayerSector = generateColorBox((128,94), (0,0,0,0))
-        self.layers = [
-            self.blankLayer.copy(),
-            EMPTY_LARGE_IMAGE_ARRAY.copy(), 
-            self.blankLayer.copy()
-        ]
-        self.layerNames = [
-            "Blank",
-            "Layer",
-            "Blank"
-        ]
-        self.layerProperties = [
-            [True, True, ""],
-            [False, True, ""],
-            [True, True, ""]
-        ]
+        if reset:
+            self.layers = [
+                self.blankLayer.copy(),
+                EMPTY_LARGE_IMAGE_ARRAY.copy(), 
+                self.blankLayer.copy()
+            ]
+            self.layerNames = [
+                "Blank",
+                "Layer",
+                "Blank"
+            ]
+            self.layerProperties = [
+                [True, True, ""],
+                [False, True, ""],
+                [True, True, ""]
+            ]
         self.selectedLayer = 1
         self.previousSelectedLayer = -999
         self.layersOffset = 0
@@ -166,15 +168,7 @@ class Interface:
         self.mouseInColorsSection = 1057 <= self.mx and self.mx <= 1344 and  212 <= self.my and self.my <=  366
         self.mouseInLayersSection = 1057 <= self.mx and self.mx <= 1344 and  380 <= self.my and self.my <=  677
 
-        if self.interactableVisualObjects[self.interacting][1].name == "Save To File" and mPressed < 3: 
-            self.saveDrawing()
-            self.selectedTool = -99
-            self.scheduleAllRegions()
-        if self.interacting == -82 and mPressed < 3: 
-            self.loadDrawing()
-            self.interacting = -999
-            self.selectedTool = -99
-            self.scheduleAllRegions()
+        self.tickButtons(mPressed)
         
         if self.interacting == -21 and mPressed < 3: 
             '''Create Layer'''
@@ -273,7 +267,7 @@ class Interface:
                     self.selectedLayer = max(1, min(self.selectedLayer, len(self.layers)-2))
 
 
-        self.processDrawing()
+        self.tickDrawing()
 
         '''Mouse Scroll'''
         self.mouseScroll = mouseScroll
@@ -448,8 +442,33 @@ class Interface:
         
         self.regionDataCache[(x,y)] = total
         return total 
+    
+    def tickButtons(self, mPressed):
+        '''Run from tick(), is a seperate function/methoed for orginization'''
+        if self.interactableVisualObjects[self.interacting][1].name == "Save To File" and mPressed < 3: 
+            self.saveDrawing()
+            self.interacting = -999
+            self.selectedTool = -99
+            self.scheduleAllRegions()
+        if self.interacting == -82 and mPressed < 3: 
+            self.loadDrawing()
+            self.interacting = -999
+            self.selectedTool = -99
+            self.scheduleAllRegions()
+        if self.interactableVisualObjects[self.interacting][1].name == "Resize Image" and mPressed < 3:
+            for i in range(len(self.layers)):
+                self.layers[i] = setSizeSize(self.layers[i], (int(self.interactableVisualObjects[self.sliders[2]][1].txt),int(self.interactableVisualObjects[self.sliders[3]][1].txt)))
+            for i in range(len(self.layerProperties)):
+                if type(self.layerProperties[i][2]) != str:
+                    self.layerProperties[i][2] = setSizeSize(self.layerProperties[i][2], (int(self.interactableVisualObjects[self.sliders[2]][1].txt),int(self.interactableVisualObjects[self.sliders[3]][1].txt)))
+            self.interacting = -999
+            self.selectedTool = -99
+            self.__init__((max(1,int(self.interactableVisualObjects[self.sliders[2]][1].txt)),max(1,int(self.interactableVisualObjects[self.sliders[3]][1].txt))),reset=False)
+            self.scheduleAllRegions()
+            
 
-    def processDrawing(self):
+
+    def tickDrawing(self):
         '''Run from tick(), is a seperate function/methoed for orginization'''
         rmx = self.mx-20
         rmy = self.my-20
