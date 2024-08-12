@@ -22,6 +22,7 @@ SKETCH_MAX_REGIONS = 5 # The maximum allowed regions of the sketch screen (total
 SKETCH_MAX_REGIONS_TIME = 0.1 # The maximum allowed time to spend on region updates per tick
 
 SHOW_CROSSHAIR = True # Shows a crosshair for the mouse's position, meant for touch-screen based drawing use
+DEFAULT_IMAGE_SIZE = (1366,697)
 
 hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
 RGBAToHexColor = lambda rgba: 0 

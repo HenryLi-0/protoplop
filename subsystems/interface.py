@@ -13,7 +13,7 @@ from subsystems.point import *
 from subsystems.bay import *
 
 class Interface:
-    def __init__(self):
+    def __init__(self, imageSize = DEFAULT_IMAGE_SIZE):
         self.mx = 0
         self.my = 0
         self.prevmx = 0
@@ -89,9 +89,9 @@ class Interface:
         self.sliders = []
         self.slidersData = []
         '''Image and Camera'''
-        self.imageSize = (1366,697)
+        self.imageSize = imageSize
         self.sketchZoomMul = 1000/max(self.imageSize[0], self.imageSize[1])
-        self.cameraPos = (683,349) # Refers to the center of focus relative to the origin of the unscaled/unzoomed/original image
+        self.cameraPos = (round(imageSize[0]/2),round(imageSize[1]/2)) # Refers to the center of focus relative to the origin of the unscaled/unzoomed/original image
         self.sketchZoom = 100
         self.updateSketch = True
         self.updateSketchLayers = True
@@ -168,6 +168,12 @@ class Interface:
         if self.interactableVisualObjects[self.interacting][1].name == "Save To File" and mPressed < 3: 
             self.saveDrawing()
             self.selectedTool = -99
+            self.scheduleAllRegions()
+        if self.interacting == -82 and mPressed < 3: 
+            self.loadDrawing()
+            self.interacting = -999
+            self.selectedTool = -99
+            self.scheduleAllRegions()
         
         if self.interacting == -21 and mPressed < 3: 
             '''Create Layer'''
@@ -827,6 +833,7 @@ class Interface:
                 self.projectPath = path
                 self.projectLastSaved = round(time.time())
                 export = []
+                export.append(VERSION)
                 # Image (General)
                 export.append(self.imageSize)
                 # Layers
@@ -843,10 +850,28 @@ class Interface:
                     f.close()
 
     def loadDrawing(self):
-        path = filedialog.askopenfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".protoplop", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg;*.jpeg"), ("BMP files", "*.bmp"), ("TIFF files", "*.tiff;*.tif"), ("GIF files", "*.gif"), ("Protoplop file", "*.protoplop"), ("All files", "*.*")])
+        path = filedialog.askopenfilename(initialdir=PATH_SAVE_DEFAULT, defaultextension=".protoplop", filetypes=[("Protoplop file", "*.protoplop"), ("PNG files", "*.png"), ("JPEG files", "*.jpg;*.jpeg"), ("BMP files", "*.bmp"), ("TIFF files", "*.tiff;*.tif"), ("GIF files", "*.gif"), ("All files", "*.*")])
         if path != "":
             if path.endswith(".protoplop"):
-                pass
+                with open(path, "r") as f:
+                    file = f.read()
+                    drawing = ast.literal_eval(file)
+                    f.close()
+                # Image (General)
+                self.imageSize = drawing[1]
+                # Layers
+                self.layers = [rawImageToArray(rawImage) for rawImage in drawing[2]]
+                self.layerNames = drawing[3]
+                temp = drawing[4]
+                for i in range(len(temp)):
+                    if type(temp[i][2]) != str:
+                        temp[i][2] = rawImageToArray(temp[i][2]) 
+                self.layerProperties = temp
+            else:
+                img = numpy.array(Image.open(path).convert("RGBA"))
+                self.__init__((img.shape[1],img.shape[0]))
+                self.layers[1] = img
+
 
 
 
