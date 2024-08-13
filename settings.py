@@ -52,6 +52,13 @@ KB_L_MV_UP   = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Up" in 
 KB_L_MV_DOWN = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Down" in keys)                 # Move Selected Layer Down
 KB_L_NEW     = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("A" in keys or "a" in keys)     # Create a new layer
 KB_L_DELETE  = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("S" in keys or "s" in keys)     # Delete a layer
+KB_T_NONE    = lambda keys: (len(keys) == 1) and ("N" in keys or "n" in keys)                           # Switch to tool None
+KB_T_MOVE    = lambda keys: (len(keys) == 1) and ("M" in keys or "m" in keys)                           # Switch to tool Move 
+KB_T_BRUSH   = lambda keys: (len(keys) == 1) and ("B" in keys or "b" in keys)                           # Switch to tool Brush 
+KB_T_PENCIL  = lambda keys: (len(keys) == 1) and ("P" in keys or "p" in keys)                           # Switch to tool Pencil 
+KB_T_ERASER  = lambda keys: (len(keys) == 1) and ("E" in keys or "e" in keys)                           # Switch to tool Eraser 
+KB_T_BUCKET  = lambda keys: (len(keys) == 1) and ("G" in keys or "g" in keys)                           # Switch to tool Bucket 
+KB_T_EYEDROP = lambda keys: (len(keys) == 1) and ("I" in keys or "i" in keys)                           # Switch to tool Eyedrop 
 
 '''Constants - DO NOT CHANGE!!!'''
 '''Do not change these constants. Some are probably important. Some are used for testing purposes. 

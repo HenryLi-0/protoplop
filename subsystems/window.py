@@ -102,7 +102,7 @@ class Window:
         print("windowOccaionalProcess")
         self.window.title(f"Protoplop")
         print(self.getFPS())
-        self.interface.scheduleAllRegions()
+        self.interface.scheduleAllRegions(False)
         self.window.after(OCCASIONAL_TICK_MS, self.windowOccasionalProcesses)
 
     def windowStartupProcesses(self):
