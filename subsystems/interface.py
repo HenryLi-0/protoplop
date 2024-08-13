@@ -580,6 +580,7 @@ class Interface:
         if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
             # Color Picking
             temp = self.regionDataCache[(max(0, min(rmx // 128, 8-1)), max(0, min(rmy // 96, 7-1)))][rmy % 94, rmx % 128]
+            temp = (temp[0], temp[1], temp[2], temp[3])
             h, s, v = colorsys.rgb_to_hsv(temp[0]/255, temp[1]/255, temp[2]/255)
             self.interactableVisualObjects[-50][1].setData(h*360) # Hue
             self.interactableVisualObjects[-49][1].setData(temp[3]) # Transparency
@@ -846,6 +847,7 @@ class Interface:
             self.numberOfLayers = len(self.layers)
             self.interactableVisualObjects[-28][1].state = self.layerProperties[self.selectedLayer][0]
             self.interactableVisualObjects[-29][1].state = self.layerProperties[self.selectedLayer][1]
+            self.scheduleAllRegions()
         else:
             self.layerNames[self.selectedLayer] = self.interactableVisualObjects[-30][1].txt
             self.layerProperties[self.selectedLayer][0] = self.interactableVisualObjects[-28][1].state
