@@ -25,8 +25,6 @@ SHOW_CROSSHAIR = True # Shows a crosshair for the mouse's position, meant for to
 DEFAULT_IMAGE_SIZE = (1366,697)
 
 hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
-RGBAToHexColor = lambda rgba: 0 
-'''please write that ^^^'''
 
 BACKGROUND_COLOR = "#333247" #Background color
 FRAME_COLOR      = "#524f6b" #Borders and Frame color
@@ -68,7 +66,7 @@ import numpy
 from subsystems.simplefancy import *
 
 # Version
-VERSION = "v0.0.0-really really early in development"
+VERSION = "v1.0.0"
 
 ICON_SPACING = lambda x,y: (6+43*x, 6+43*y)
 
