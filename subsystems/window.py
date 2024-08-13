@@ -68,17 +68,20 @@ class Window:
         '''OPTIMIZE, CONSTANT SKETCH SCREEN UPDATES ARE NOT NECCESARY!'''
         if len(self.interface.updateSketchRegions) > 0:
             i = 0
+            start = time.time()
             for i in range(min(SKETCH_MAX_REGIONS, len(self.interface.updateSketchRegions))):
                 region = self.interface.updateSketchRegions.pop(0)
                 temp = arrayToImage(self.interface.processFetchSketchSector(region[0], region[1])).resize((128,94))
                 self.w_sketch[region].update(temp)
+                if time.time() - start > SKETCH_MAX_REGIONS_TIME:
+                    break
             self.interface.consoleAlerts.append(f"{self.interface.ticks} - regions left: {len(self.interface.updateSketchRegions)}")
         self.w_tools .update(arrayToImage(self.interface.processTools (self.b_tools )))
         self.w_colors.update(arrayToImage(self.interface.processColors(self.b_colors)))
         self.w_layers.update(arrayToImage(self.interface.processLayers(self.b_layers)))
         self.w_popUp .update(arrayToImage(self.interface.processPopUp (self.b_popUp )))
 
-        if self.interface.selectedTool in self.interface.drawingToolIDs:
+        if self.interface.selectedTool in self.interface.popUpDataIDs:
             if not(self.w_popUp.shown): self.w_popUp.show()
         else:
             if self.w_popUp.shown: self.w_popUp.hide()
@@ -99,7 +102,7 @@ class Window:
         print("windowOccaionalProcess")
         self.window.title(f"Protoplop")
         print(self.getFPS())
-        self.interface.scheduleAllRegions()
+        self.interface.scheduleAllRegions(False)
         self.window.after(OCCASIONAL_TICK_MS, self.windowOccasionalProcesses)
 
     def windowStartupProcesses(self):

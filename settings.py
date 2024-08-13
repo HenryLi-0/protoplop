@@ -9,7 +9,6 @@ Here are the parts:
 - Constants (Please do not change!)
 '''
 
-
 '''Calculation'''
 FLOAT_ACCURACY = 3 #This is how many digits after the decimal point things will generally round to
 
@@ -20,10 +19,12 @@ OCCASIONAL_TICK_MS = 5000 # Highly recommended to keep above 1 second, as it run
 
 SKETCH_QUALITY = 1 # The display quality of the sketch SHOWN computationally. 1 is the highsst, the greater you go, the more pixelated it gets
 SKETCH_MAX_REGIONS = 5 # The maximum allowed regions of the sketch screen (total 48) allowed to be updated per call to update
+SKETCH_MAX_REGIONS_TIME = 0.1 # The maximum allowed time to spend on region updates per tick
+
+SHOW_CROSSHAIR = True # Shows a crosshair for the mouse's position, meant for touch-screen based drawing use
+DEFAULT_IMAGE_SIZE = (1366,697)
 
 hexColorToRGBA = lambda hexcolor: tuple(int(hexcolor[i:i+2], 16) for i in (1, 3, 5)) + (255,)
-RGBAToHexColor = lambda rgba: 0 
-'''please write that ^^^'''
 
 BACKGROUND_COLOR = "#333247" #Background color
 FRAME_COLOR      = "#524f6b" #Borders and Frame color
@@ -37,16 +38,25 @@ VOID_COLOR_RGBA       = hexColorToRGBA(VOID_COLOR      )
 
 '''Saving'''
 import os, time
-PATH_SAVE_DEFAULT = os.path.join("tapes")
+PATH_SAVE_DEFAULT = os.path.join("saves")
 
 FORMAT_TIME = lambda x: time.strftime("%I:%M:%S %p %m/%d/%Y", time.localtime(x))
 
 '''Keybinds'''
-KB_IGNORE = ["Win_L"]
-KB_ZOOM   = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("space" in keys)
-KB_FOCUS  = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("F" in keys or "f" in keys)
-KB_DELETE = ["S", "s"]
-
+KB_IGNORE    = ["Win_L"]                                                                                # Keys to ignore
+KB_ZOOM      = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("space" in keys)            # Zooming
+KB_FOCUS     = lambda keys: (len(keys) == 2) and ("Control_L" in keys) and ("F" in keys or "f" in keys) # Center Screen
+KB_L_MV_UP   = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Up" in keys)                   # Move Selected Layer Up
+KB_L_MV_DOWN = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("Down" in keys)                 # Move Selected Layer Down
+KB_L_NEW     = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("A" in keys or "a" in keys)     # Create a new layer
+KB_L_DELETE  = lambda keys: (len(keys) == 2) and ("Alt_L" in keys) and ("S" in keys or "s" in keys)     # Delete a layer
+KB_T_NONE    = lambda keys: (len(keys) == 1) and ("N" in keys or "n" in keys)                           # Switch to tool None
+KB_T_MOVE    = lambda keys: (len(keys) == 1) and ("M" in keys or "m" in keys)                           # Switch to tool Move 
+KB_T_BRUSH   = lambda keys: (len(keys) == 1) and ("B" in keys or "b" in keys)                           # Switch to tool Brush 
+KB_T_PENCIL  = lambda keys: (len(keys) == 1) and ("P" in keys or "p" in keys)                           # Switch to tool Pencil 
+KB_T_ERASER  = lambda keys: (len(keys) == 1) and ("E" in keys or "e" in keys)                           # Switch to tool Eraser 
+KB_T_BUCKET  = lambda keys: (len(keys) == 1) and ("G" in keys or "g" in keys)                           # Switch to tool Bucket 
+KB_T_EYEDROP = lambda keys: (len(keys) == 1) and ("I" in keys or "i" in keys)                           # Switch to tool Eyedrop 
 
 '''Constants - DO NOT CHANGE!!!'''
 '''Do not change these constants. Some are probably important. Some are used for testing purposes. 
@@ -56,7 +66,7 @@ import numpy
 from subsystems.simplefancy import *
 
 # Version
-VERSION = "v0.0.0-demo"
+VERSION = "v1.0.0"
 
 ICON_SPACING = lambda x,y: (6+43*x, 6+43*y)
 
@@ -69,6 +79,8 @@ RAINBOW_COLOR_PICKER = generateRainbowColorPicker()
 # Imagery
 LOADING_IMAGE = Image.open(os.path.join("resources", "loading.png")).convert("RGBA") # 1366x697, Solid, Loading Screen
 LOADING_IMAGE_ARRAY = numpy.array(LOADING_IMAGE)
+EMPTY_LARGE_IMAGE = Image.open(os.path.join("resources", "blank_large.png")).convert("RGBA")
+EMPTY_LARGE_IMAGE_ARRAY = numpy.array(EMPTY_LARGE_IMAGE)
 PLACEHOLDER_IMAGE = Image.open(os.path.join("resources", "placeholder", "placeholder.png")).convert("RGBA")    # 512x512, Solid, [black, white, grey]
 PLACEHOLDER_IMAGE_ARRAY = numpy.array(PLACEHOLDER_IMAGE)
 PLACEHOLDER_IMAGE_2 = Image.open(os.path.join("resources", "placeholder", "placeholder2.png")).convert("RGBA")  # 100x100, Transparent Background [black, white, grey]
@@ -124,18 +136,14 @@ POINT_IDLE = Image.open(os.path.join("resources", "point_idle.png")).convert("RG
 POINT_IDLE_ARRAY = numpy.array(POINT_IDLE)
 POINT_SELECTED = Image.open(os.path.join("resources", "point_selected.png")).convert("RGBA")
 POINT_SELECTED_ARRAY = numpy.array(POINT_SELECTED)
-RECTANGULAR_RED_BUTTON_ARRAY = numpy.array(Image.open(os.path.join("resources", "rectangular_red_button.png")).convert("RGBA"))
-RECTANGULAR_GREEN_BUTTON_ARRAY = numpy.array(Image.open(os.path.join("resources", "rectangular_green_button.png")).convert("RGBA"))
 UP_ARROW_ARRAY = numpy.array(Image.open(os.path.join("resources", "up_arrow.png")).convert("RGBA"))
-PATH_POINT_IDLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "path_point_idle.png")).convert("RGBA"))
-PATH_POINT_SELECTED_ARRAY = numpy.array(Image.open(os.path.join("resources", "path_point_selected.png")).convert("RGBA"))
+DOT_IDLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "dot_idle.png")).convert("RGBA"))
+DOT_SELECTED_ARRAY = numpy.array(Image.open(os.path.join("resources", "dot_selected.png")).convert("RGBA"))
 PLUS_SIGN_ARRAY = numpy.array(Image.open(os.path.join("resources", "plus.png")).convert("RGBA"))
 TRASHCAN_ARRAY = numpy.array(Image.open(os.path.join("resources", "trashcan.png")).convert("RGBA"))
 IMPORT_ARRAY = numpy.array(Image.open(os.path.join("resources", "import.png")).convert("RGBA"))
 SAVE_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "save.png")).convert("RGBA"))
 LOAD_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "load.png")).convert("RGBA"))
-RENDER_GIF_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "render_gif.png")).convert("RGBA"))
-RENDER_MP4_ICON_ARRAY = numpy.array(Image.open(os.path.join("resources", "render_mp4.png")).convert("RGBA"))
 
 ICON_NONE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "none.png")).convert("RGBA"))
 ICON_MOVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "move.png")).convert("RGBA"))
@@ -144,5 +152,16 @@ ICON_PENCIL_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "pe
 ICON_ERASER_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eraser.png")).convert("RGBA"))
 ICON_BUCKET_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "bucket.png")).convert("RGBA"))
 ICON_EYEDROP_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "eyedrop.png")).convert("RGBA"))
+ICON_RESIZE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "resize.png")).convert("RGBA"))
 
 ICON_CONSOLE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "console.png")).convert("RGBA"))
+ICON_SAVE_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "save.png")).convert("RGBA"))
+ICON_OPEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "import.png")).convert("RGBA"))
+
+ICON_SHOWN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "shown.png")).convert("RGBA"))
+ICON_HIDDEN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "hidden.png")).convert("RGBA"))
+ICON_LOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "lock.png")).convert("RGBA"))
+ICON_UNLOCK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "unlock.png")).convert("RGBA"))
+ICON_PLUS_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "plus.png")).convert("RGBA"))
+ICON_TRASHCAN_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "trashcan.png")).convert("RGBA"))
+ICON_LAYERMASK_ARRAY = numpy.array(Image.open(os.path.join("resources", "icon", "layermask.png")).convert("RGBA"))
