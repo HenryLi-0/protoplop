@@ -490,7 +490,7 @@ class Interface:
                         scaledDrawingMask  = getRegion(self.layerProperties[self.selectedLayer][2], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=0, thirdaxis=False)
                         scaledDrawingMask  = setSizeSize(scaledDrawingMask, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
                         applyMask(scaledDrawingImage, scaledDrawingMask)
-            placeOver(total, scaledDrawingImage, (0,0))
+                placeOver(total, scaledDrawingImage, (0,0))
             placeOver(total, self.regionLayersCache[(x,y)][1], (0,0))
 
         self.regionDataCache[(x,y)] = total
@@ -948,10 +948,11 @@ class Interface:
             if path != "":
                 total = self.blankLayer.copy()
                 for i in range(len(self.layers)):
-                    c = self.layers[i].copy()
-                    if type(self.layerProperties[i][2]) != str:
-                        applyMask(c, self.layerProperties[i][2])
-                    placeOver(total, c, (0,0))
+                    if self.layerProperties[i][1]:
+                        c = self.layers[i].copy()
+                        if type(self.layerProperties[i][2]) != str:
+                            applyMask(c, self.layerProperties[i][2])
+                        placeOver(total, c, (0,0))
                 img = Image.fromarray(total)
                 img.save(path)
         else:

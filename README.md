@@ -1,4 +1,6 @@
-# protoplop
+![](</protoplop_banner.png>)
+
+# Protoplop
 
 a totally original drawing idea
 
