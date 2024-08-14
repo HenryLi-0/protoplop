@@ -490,7 +490,7 @@ class Interface:
                         scaledDrawingMask  = getRegion(self.layerProperties[self.selectedLayer][2], (self.cameraPos[0] + (128*x-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*y-329)*(100/self.sketchZoom)), (self.cameraPos[0] + (128*(x+1)-512)*(100/self.sketchZoom),self.cameraPos[1] + (94*(y+1)-329)*(100/self.sketchZoom)), color=0, thirdaxis=False)
                         scaledDrawingMask  = setSizeSize(scaledDrawingMask, (math.ceil(128*1/SKETCH_QUALITY), math.ceil(94*1/SKETCH_QUALITY)))
                         applyMask(scaledDrawingImage, scaledDrawingMask)
-            placeOver(total, scaledDrawingImage, (0,0))
+                placeOver(total, scaledDrawingImage, (0,0))
             placeOver(total, self.regionLayersCache[(x,y)][1], (0,0))
 
         self.regionDataCache[(x,y)] = total
@@ -580,6 +580,7 @@ class Interface:
         if self.selectedTool == -93 and self.mouseInSketchSection and self.mRising and self.interacting == -999:
             # Color Picking
             temp = self.regionDataCache[(max(0, min(rmx // 128, 8-1)), max(0, min(rmy // 96, 7-1)))][rmy % 94, rmx % 128]
+            temp = (temp[0], temp[1], temp[2], temp[3])
             h, s, v = colorsys.rgb_to_hsv(temp[0]/255, temp[1]/255, temp[2]/255)
             self.interactableVisualObjects[-50][1].setData(h*360) # Hue
             self.interactableVisualObjects[-49][1].setData(temp[3]) # Transparency
@@ -846,6 +847,7 @@ class Interface:
             self.numberOfLayers = len(self.layers)
             self.interactableVisualObjects[-28][1].state = self.layerProperties[self.selectedLayer][0]
             self.interactableVisualObjects[-29][1].state = self.layerProperties[self.selectedLayer][1]
+            self.scheduleAllRegions()
         else:
             self.layerNames[self.selectedLayer] = self.interactableVisualObjects[-30][1].txt
             self.layerProperties[self.selectedLayer][0] = self.interactableVisualObjects[-28][1].state
@@ -946,10 +948,11 @@ class Interface:
             if path != "":
                 total = self.blankLayer.copy()
                 for i in range(len(self.layers)):
-                    c = self.layers[i].copy()
-                    if type(self.layerProperties[i][2]) != str:
-                        applyMask(c, self.layerProperties[i][2])
-                    placeOver(total, c, (0,0))
+                    if self.layerProperties[i][1]:
+                        c = self.layers[i].copy()
+                        if type(self.layerProperties[i][2]) != str:
+                            applyMask(c, self.layerProperties[i][2])
+                        placeOver(total, c, (0,0))
                 img = Image.fromarray(total)
                 img.save(path)
         else:
